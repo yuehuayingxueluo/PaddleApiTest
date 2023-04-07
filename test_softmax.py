@@ -28,7 +28,7 @@ class TestSoftMaxCase1(unittest.TestCase):
         self.out_shape = [1, 32, 4096, 4096]
         self.use_cudnn = True
         self.axis = -1
-        self.dtypes = ["bfloat16"]
+        self.dtypes = ["float32", "float16", "bfloat16"]
         self.places = ["gpu"]
 
     def cal_eager_res(self,input,use_cudnn,axis,dout, dtype):
