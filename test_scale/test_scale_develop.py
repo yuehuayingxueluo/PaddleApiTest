@@ -58,7 +58,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
         # get np array from npz file
         self.np_x = np_inputs_array["x"]
         self.np_scale = np_inputs_array["scale"]
-        self.np_bias = np_inputs_array("bias")
+        self.np_bias = np_inputs_array["bias"]
         self.np_dout = np_inputs_array["dout"]
         # convert np array dtype
         if self.dtype == "float16":
