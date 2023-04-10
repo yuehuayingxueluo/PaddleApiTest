@@ -1,30 +1,16 @@
 import numpy as np
 import paddle
-import torch
 import unittest
 from paddle.fluid.layers.utils import map_structure
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import TOLERANCE
 
 class TestScaleIncubateCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
         self.init_np_inputs_and_dout()
-        x_torch, scale_torch, bias_torch, dout_torch = self.gen_torch_inputs_and_dout()
-        out_torch, out_grads_torch = self.cal_torch_res(x_torch, scale_torch, bias_torch, self.bias_after_scale, dout_torch)
-        del x_torch 
-        del scale_torch
-        del bias_torch
-        del dout_torch 
-        self.out_torch = out_torch.cpu().detach().numpy()
-        self.out_grads_torch = map_structure(
-                                lambda x: x.cpu().numpy(),
-                                out_grads_torch,
-                            )
-        del out_torch, out_grads_torch
-        torch.cuda.empty_cache()
 
     def init_params(self):
         self.np_input_dir = "./inputss_case1.npz"
@@ -48,27 +34,6 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
-    
-    def gen_torch_inputs_and_dout(self):
-        x_torch = torch.tensor(
-            self.np_x,
-            device='cuda',
-            dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
-            requires_grad=True,
-        )
-        scale_torch = self.np_scale
-        bias_torch = self.np_bias
-        dout_torch = torch.tensor(
-            self.np_dout,
-            device='cuda',
-            dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
-            requires_grad=True,
-        )
-        return x_torch, scale_torch, bias_torch, dout_torch
     
     def gen_eager_inputs_and_dout(self):
         x_eager = paddle.to_tensor(
@@ -103,19 +68,6 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         )
         dout_static.stop_gradient = False
         return x_static, scale_static, bias_static, dout_static
-
-    def cal_torch_res(self, x, scale, bias, bias_after_scale, dout):
-        if self.dtype == "bfloat16":
-            x = x.to(dtype=torch.bfloat16)
-            dout = dout.to(dtype=torch.bfloat16)
-        if bias_after_scale:
-            out = x * scale + bias
-        else:
-            out = scale * (x + bias)
-        out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
-        if self.dtype == "bfloat16":
-            out = out.to(dtype=torch.float32)
-        return out, out_grads
 
     def cal_eager_res(self, x, scale, bias, bias_after_scale, dout):
         if self.dtype == "bfloat16":
