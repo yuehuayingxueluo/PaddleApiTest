@@ -124,6 +124,8 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
             dout = dout.to(dtype=torch.bfloat16)
+        scale = torch.tensor(scale, dtype=convert_dtype_to_torch_type(self.dtype))
+        bias = torch.tensor(bias, dtype=convert_dtype_to_torch_type(self.dtype))
         if bias_after_scale:
             out = x * scale + bias
         else:
@@ -131,6 +133,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
         out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = out.to(dtype=torch.float32)
+            out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
         return out, out_grads
 
     def cal_eager_res(self, x, scale, bias, bias_after_scale, dout):
@@ -143,6 +146,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype='float32'), out_grads)
         return out, out_grads
 
     def cal_static_res(self, x, scale, bias, bias_after_scale, dout):
@@ -155,6 +159,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype='float32'), out_grads)
         return out, out_grads
 
     def test_eager_accuracy(self):

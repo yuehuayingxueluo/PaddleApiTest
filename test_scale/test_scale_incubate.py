@@ -79,6 +79,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype='float32'), out_grads)
         return out, out_grads
 
     def cal_static_res(self, x, scale, bias, bias_after_scale, dout):
@@ -91,6 +92,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype='float32'), out_grads)
         return out, out_grads
 
     def test_eager_accuracy(self):
@@ -125,7 +127,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         )
         for idx in range(len(out_grads_eager_np)):
             np.testing.assert_equal(
-                out_grads_eager[idx],
+                out_grads_eager_np[idx],
                 out_eager_grads_develop[idx],
             err_msg=(
                 'Incubate: compare scale incubate eager grad res with develop eager grad res failed in %s dtype'
