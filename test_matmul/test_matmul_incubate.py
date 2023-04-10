@@ -26,7 +26,7 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
         torch.cuda.empty_cache()
 
     def init_params(self):
-        self.np_input_dir = "./inputss_case1.npz"
+        self.np_input_dir = "./inputs_case1.npz"
         self.transpose_x = False
         self.transpose_y = True
         self.dtype = "float32"
@@ -172,8 +172,8 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
         # get develop eager res
         develop_res_array = np.load(self.save_eager_res_path)
         out_eager_develop = develop_res_array["out_eager"]
-        out_eager_grad_0_develop = develop_res_array["out_eager_grad_0"]
-        out_eager_grad_1_develop = develop_res_array["out_eager_grad_1"]
+        out_eager_grad_0_develop = develop_res_array["out_grads_eager_0"]
+        out_eager_grad_1_develop = develop_res_array["out_grads_eager_1"]
         out_eager_grads_develop = [out_eager_grad_0_develop, out_eager_grad_1_develop]
 
         # calculate incubate eager res
