@@ -159,25 +159,27 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
 
     def test_eager_accuracy(self):
         x_eager, scale_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
-        print(paddle.device.cuda.memory_allocated(paddle.CUDAPlace(0)))
 
         out_eager, out_grads_eager = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
         del x_eager
         del scale_eager
         del bias_eager
         del dout_eager
-        print(paddle.device.cuda.memory_allocated(paddle.CUDAPlace(0)))
-        out_eager = out_eager.numpy()
-        out_grads_eager = map_structure(
+        paddle.device.cuda.empty_cache()
+        out_eager_np = out_eager.numpy()
+        out_grads_eager_np = map_structure(
                                 lambda x: x.numpy(),
                                 out_grads_eager,
                             )
+        del out_eager
+        del out_grads_eager
+        paddle.device.cuda.empty_cache()
         # save eager res for test_scale_incubate
-        np.savez(self.save_eager_res_path, out_eager=out_eager, out_grads_eager_0=out_grads_eager[0])
+        np.savez(self.save_eager_res_path, out_eager=out_eager_np, out_grads_eager_0=out_grads_eager_np[0])
         
         # compare eager res with torch
         np.testing.assert_allclose(
-            out_eager,
+            out_eager_np,
             self.out_torch,
             self.atol,
             self.rtol,
@@ -186,9 +188,9 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
             )
             % self.dtype,
         )
-        for idx in range(len(out_grads_eager)):
+        for idx in range(len(out_grads_eager_np)):
             np.testing.assert_allclose(
-                out_grads_eager[idx],
+                out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
@@ -250,11 +252,15 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
     def test_eager_stability(self):
         x_eager, scale_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
-        out_eager_baseline = out_eager_baseline.numpy()
-        out_grads_eager_baseline = map_structure(
+        out_eager_baseline_np = out_eager_baseline.numpy()
+        out_grads_eager_baseline_np = map_structure(
                                 lambda x: x.numpy(),
                                 out_grads_eager_baseline,
                             )
+        del out_eager_baseline
+        del out_grads_eager_baseline
+        paddle.device.cuda.empty_cache()
+
         for i in range(50):
             out_eager, out_grads_eager = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
             out_eager = out_eager.numpy()
@@ -264,7 +270,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
                                 )
             np.testing.assert_equal(
                 out_eager,
-                out_eager_baseline,
+                out_eager_baseline_np,
                 err_msg=(
                     'Develop: paddle.scale eager forward is unstable in %s dtype'
                 )
@@ -273,7 +279,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
             for idx in range(len(out_grads_eager)):
                 np.testing.assert_equal(
                     out_grads_eager[idx],
-                    out_grads_eager_baseline[idx],
+                    out_grads_eager_baseline_np[idx],
                     err_msg=(
                         'Develop: paddle.scale eager grad is unstable in %s dtype'
                     )

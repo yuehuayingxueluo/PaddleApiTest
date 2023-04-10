@@ -150,25 +150,31 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         # calculate incubate eager res
         x_eager, scale_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
         out_eager, out_grads_eager = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
-        out_eager = out_eager.numpy()
-        out_grads_eager = map_structure(
+        del x_eager
+        del scale_eager
+        del bias_eager
+        del dout_eager
+        paddle.device.cuda.empty_cache()
+        out_eager_np = out_eager.numpy()
+        out_grads_eager_np = map_structure(
                                 lambda x: x.numpy(),
                                 out_grads_eager,
                             )
-        
+        del out_eager
+        del out_grads_eager
         # compare incubate eager res with develop eager res
         np.testing.assert_equal(
-            out_eager,
+            out_eager_np,
             out_eager_develop,
             err_msg=(
                 'Incubate: compare scale incubate eager forward res with develop eager forward res failed in %s dtype'
             )
             % self.dtype,
         )
-        for idx in range(len(out_grads_eager)):
+        for idx in range(len(out_grads_eager_np)):
             np.testing.assert_equal(
                 out_grads_eager[idx],
-                out_eager_grads_develop[idx],
+                out_eager_grads_develop,
             err_msg=(
                 'Incubate: compare scale incubate eager grad res with develop eager grad res failed in %s dtype'
             )
@@ -217,7 +223,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         for idx in range(len(out_grads_static)):
             np.testing.assert_equal(
                 out_grads_static[idx],
-                out_grads_static_develop[idx],
+                out_grads_static_develop,
             err_msg=(
                 'Incubate: compare scale incubate static grad res with develop static grad res failed in %s dtype'
             )
@@ -227,11 +233,15 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
     def test_eager_stability(self):
         x_eager, scale_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
-        out_eager_baseline = out_eager_baseline.numpy()
-        out_grads_eager_baseline = map_structure(
+        out_eager_baseline_np = out_eager_baseline.numpy()
+        out_grads_eager_baseline_np = map_structure(
                                 lambda x: x.numpy(),
                                 out_grads_eager_baseline,
                             )
+        del out_eager_baseline
+        del out_grads_eager_baseline
+        paddle.device.cuda.empty_cache()
+
         for i in range(50):
             out_eager, out_grads_eager = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
             out_eager = out_eager.numpy()
@@ -241,7 +251,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
                                 )
             np.testing.assert_equal(
                 out_eager,
-                out_eager_baseline,
+                out_eager_baseline_np,
                 err_msg=(
                     'Develop: paddle.scale eager forward is unstable in %s dtype'
                 )
@@ -250,7 +260,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
             for idx in range(len(out_grads_eager)):
                 np.testing.assert_equal(
                     out_grads_eager[idx],
-                    out_grads_eager_baseline[idx],
+                    out_grads_eager_baseline_np[idx],
                     err_msg=(
                         'Develop: paddle.scale eager grad is unstable in %s dtype'
                     )
@@ -310,8 +320,8 @@ class TestScaleIncubateCase1_FP16(TestScaleIncubateCase1_FP32):
         self.np_input_dir = "./inputs_case1.npz"
         self.bias_after_scale = False
         self.dtype = "float16"
-        self.save_static_res_path = "./static_develop_res_case1_fp16.npy"
-        self.save_eager_res_path = "./eager_develop_res_case1_fp16.npy"
+        self.save_static_res_path = "./static_develop_res_case1_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case1_fp16.npz"
 
 
 class TestScaleIncubateCase1_BFP16(TestScaleIncubateCase1_FP32):
@@ -319,8 +329,8 @@ class TestScaleIncubateCase1_BFP16(TestScaleIncubateCase1_FP32):
         self.np_input_dir = "./inputs_case1.npz"
         self.bias_after_scale = False
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case1_bfp16.npy"
-        self.save_eager_res_path = "./eager_develop_res_case1_bfp16.npy"
+        self.save_static_res_path = "./static_develop_res_case1_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case1_bfp16.npz"
 
 
 class TestScaleIncubateCase2_FP32(TestScaleIncubateCase1_FP32):
@@ -328,8 +338,8 @@ class TestScaleIncubateCase2_FP32(TestScaleIncubateCase1_FP32):
         self.np_input_dir = "./inputs_case2.npz"
         self.bias_after_scale = True
         self.dtype = "float32"
-        self.save_static_res_path = "./static_develop_res_case2_fp32.npy"
-        self.save_eager_res_path = "./eager_develop_res_case2_fp32.npy"
+        self.save_static_res_path = "./static_develop_res_case2_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case2_fp32.npz"
 
 
 class TestScaleIncubateCase2_FP16(TestScaleIncubateCase1_FP32):
@@ -337,8 +347,8 @@ class TestScaleIncubateCase2_FP16(TestScaleIncubateCase1_FP32):
         self.np_input_dir = "./inputs_case2.npz"
         self.bias_after_scale = True
         self.dtype = "float16"
-        self.save_static_res_path = "./static_develop_res_case2_fp16.npy"
-        self.save_eager_res_path = "./eager_develop_res_case2_fp16.npy"
+        self.save_static_res_path = "./static_develop_res_case2_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case2_fp16.npz"
 
 
 class TestScaleIncubateCase2_BFP16(TestScaleIncubateCase1_FP32):
@@ -346,8 +356,8 @@ class TestScaleIncubateCase2_BFP16(TestScaleIncubateCase1_FP32):
         self.np_input_dir = "./inputs_case2.npz"
         self.bias_after_scale = True
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case2_bfp16.npy"
-        self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npy"
+        self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
 
 
 if __name__ == '__main__':
