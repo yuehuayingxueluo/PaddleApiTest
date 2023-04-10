@@ -9,17 +9,17 @@ from utils import TOLERANCE, convert_dtype_to_torch_type
 
 
 def generate_np_inputs_and_dout():
-    x_case1 = np.random.random(size=[1, 32, 4096, 192])
-    y_case1 = np.random.random(size=[1, 32, 4096, 192])
-    dout_case1 = np.random.random(size=[1, 32, 4096, 4096])
+    x_case1 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    y_case1 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    dout_case1 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
 
-    x_case2 = np.random.random(size=[1, 32, 4096, 4096])
-    y_case2 = np.random.random(size=[1, 32, 4096, 4096])
-    dout_case2 = np.random.random(size=[1, 32, 4096, 4096])
+    x_case2 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
+    y_case2 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
+    dout_case2 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
 
-    x_case3 = np.random.random(size=[1, 32, 4096, 4096])
-    y_case3 = np.random.random(size=[1, 32, 4096, 192])
-    dout_case3 = np.random.random(size=[1, 32, 4096, 4096])
+    x_case3 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
+    y_case3 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    dout_case3 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
 
     np.savez("./inputs_case1.npz", x = x_case1, y = y_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x = x_case2, y = y_case2, dout = dout_case2)
@@ -33,11 +33,16 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         self.init_np_inputs_and_dout()
         x_torch, y_torch, dout_torch = self.gen_torch_inputs_and_dout()
         out_torch, out_grads_torch = self.cal_torch_res(x_torch, y_torch, self.transpose_x, self.transpose_y, dout_torch)
+        del x_torch 
+        del y_torch 
+        del dout_torch 
         self.out_torch = out_torch.cpu().detach().numpy()
         self.out_grads_torch = map_structure(
                                 lambda x: x.cpu().numpy(),
                                 out_grads_torch,
                             )
+        del out_torch, out_grads_torch
+        torch.cuda.empty_cache()
 
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
@@ -58,14 +63,10 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         self.np_y = np_inputs_array["y"]
         self.np_dout = np_inputs_array["dout"]
         # convert np array dtype
-        if self.dtype == "bfloat16":
-            self.np_x = self.np_x.astype("float32")
-            self.np_y = self.np_y.astype("float32")
-            self.np_dout = self.np_dout.astype("float32")
-        else:
-            self.np_x = self.np_x.astype(self.dtype)
-            self.np_y = self.np_y.astype(self.dtype)
-            self.np_dout = self.np_dout.astype(self.dtype)
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
     
     def gen_torch_inputs_and_dout(self):
         x_torch = torch.tensor(
@@ -164,7 +165,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             dout_t = paddle.cast(dout, dtype="uint16")
         out = paddle.matmul(x_t, y_t, transpose_x, transpose_y)
         out_grads = paddle.grad(
-            [out], [x, y], grad_outputs=[dout_t], retain_graph=True
+            [out], [x, y], grad_outputs=[dout_t]
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
@@ -188,7 +189,13 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
 
     def test_eager_accuracy(self):
         x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        print(paddle.device.cuda.memory_allocated(paddle.CUDAPlace(0)))
+
         out_eager, out_grads_eager = self.cal_eager_res(x_eager, y_eager, self.transpose_x, self.transpose_y, dout_eager)
+        del x_eager
+        del y_eager 
+        del dout_eager
+        print(paddle.device.cuda.memory_allocated(paddle.CUDAPlace(0)))
         out_eager = out_eager.numpy()
         out_grads_eager = map_structure(
                                 lambda x: x.numpy(),
