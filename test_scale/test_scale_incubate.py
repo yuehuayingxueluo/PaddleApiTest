@@ -13,7 +13,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         self.init_np_inputs_and_dout()
 
     def init_params(self):
-        self.np_input_dir = "./inputss_case1.npz"
+        self.np_input_dir = "./inputs_case1.npz"
         self.bias_after_scale = False
         self.dtype = "float32"
         self.save_static_res_path = "./static_develop_res_case1_fp32.npz"
@@ -97,7 +97,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         # get develop eager res
         develop_res_array = np.load(self.save_eager_res_path)
         out_eager_develop = develop_res_array["out_eager"]
-        out_eager_grads_develop = [develop_res_array["out_eager_grad_0"]]
+        out_eager_grads_develop = [develop_res_array["out_grads_eager_0"]]
 
         # calculate incubate eager res
         x_eager, scale_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
@@ -126,7 +126,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         for idx in range(len(out_grads_eager_np)):
             np.testing.assert_equal(
                 out_grads_eager[idx],
-                out_eager_grads_develop,
+                out_eager_grads_develop[idx],
             err_msg=(
                 'Incubate: compare scale incubate eager grad res with develop eager grad res failed in %s dtype'
             )
@@ -151,17 +151,16 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
                     self.bias_after_scale,
                     dout_static,
                 )
-        exe = paddle.static.Executor(
-            place=paddle.CUDAPlace(0)
-        )
-        exe.run(sp)
-        out = exe.run(
-            mp,
-            feed={"x": self.np_x, "dout": self.np_dout},
-            fetch_list=[out_static] + out_grads_static,
-        )
-        out_static, out_grads_static = out[0], out[1:]
-        paddle.disable_static()
+            exe = paddle.static.Executor(
+                place=paddle.CUDAPlace(0)
+            )
+            exe.run(sp)
+            out = exe.run(
+                mp,
+                feed={"x": self.np_x, "dout": self.np_dout},
+                fetch_list=[out_static] + out_grads_static,
+            )
+            out_static, out_grads_static = out[0], out[1:]
         
         # compare incubate static res with develop static res
         np.testing.assert_equal(
@@ -175,7 +174,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         for idx in range(len(out_grads_static)):
             np.testing.assert_equal(
                 out_grads_static[idx],
-                out_grads_static_develop,
+                out_grads_static_develop[idx],
             err_msg=(
                 'Incubate: compare scale incubate static grad res with develop static grad res failed in %s dtype'
             )
