@@ -277,7 +277,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                                 lambda x: x.numpy(),
                                 out_grads_eager_baseline,
                             )
-        for i in range(1):
+        for i in range(50):
             out_eager, out_grads_eager = self.cal_eager_res(x_eager, y_eager, self.transpose_x, self.transpose_y, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
@@ -324,7 +324,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(1):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
