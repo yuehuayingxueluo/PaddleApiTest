@@ -1,5 +1,3 @@
-import torch
-
 TOLERANCE = {
     "float32": {"atol": 1e-6, "rtol": 1e-6},
     "float16": {"atol": 1e-4, "rtol": 1e-4},
@@ -7,6 +5,8 @@ TOLERANCE = {
 }
 
 def convert_dtype_to_torch_type(dtype):
+    import torch
+
     if dtype == 'float32':
         return torch.float32
     elif dtype == 'float16':
