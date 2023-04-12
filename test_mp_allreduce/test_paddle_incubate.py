@@ -2,6 +2,7 @@ import numpy as np
 import paddle
 import paddle.distributed as paddle_dist
 import base_class
+import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
