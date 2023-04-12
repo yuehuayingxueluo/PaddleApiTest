@@ -188,7 +188,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
         del out_eager
         del out_grads_eager
         paddle.device.cuda.empty_cache()
-        # save eager res for test_matmul_incubate
+        # save eager res for test_layer_norm_incubate
         np.savez(self.save_eager_res_path, out_eager=out_eager_np, out_grads_eager_0=out_grads_eager_np[0], out_grads_eager_1=out_grads_eager_np[1], out_grads_eager_2=out_grads_eager_np[2])
         
         # compare eager res with torch
@@ -198,7 +198,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
             self.atol,
             self.rtol,
             err_msg=(
-                'Develop: compare matmul eager forward res with torch failed in %s dtype'
+                'Develop: compare layer_norm eager forward res with torch failed in %s dtype'
             )
             % self.dtype,
         )
@@ -209,7 +209,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare matmul eager grad res with torch failed in %s dtype'
+                    'Develop: compare layer_norm eager grad res with torch failed in %s dtype'
                 )
                 % self.dtype,
             )
@@ -282,7 +282,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
             )
             out_static, out_grads_static = out[0], out[1:]
 
-        # save static res for test_matmul_incubate
+        # save static res for test_layer_norm_incubate
         np.savez(self.save_static_res_path, out_static=out_static, out_grads_static_0=out_grads_static[0], out_grads_static_1=out_grads_static[1], out_grads_static_2=out_grads_static[2])
         
         # compare static res with torch
@@ -292,7 +292,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
             self.atol,
             self.rtol,
             err_msg=(
-                'Develop: compare matmul static forward res with torch failed in %s dtype'
+                'Develop: compare layer_norm static forward res with torch failed in %s dtype'
             )
             % self.dtype,
         )
@@ -303,7 +303,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare matmul static grad res with torch failed in %s dtype'
+                    'Develop: compare layer_norm static grad res with torch failed in %s dtype'
                 )
                 % self.dtype,
             )
@@ -332,7 +332,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
-                    'Develop: paddle.matmul eager forward is unstable in %s dtype'
+                    'Develop: paddle.nn.functional.layer_norm eager forward is unstable in %s dtype'
                 )
                 % self.dtype,
             )
@@ -341,7 +341,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.matmul eager grad is unstable in %s dtype'
+                        'Develop: paddle.nn.functional.layer_norm eager grad is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -379,7 +379,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
                     out_static,
                     out_static_baseline,
                     err_msg=(
-                        'Develop: paddle.matmul static forward is unstable in %s dtype'
+                        'Develop: paddle.nn.functional.layer_norm static forward is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -388,7 +388,7 @@ class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.matmul static grad is unstable in %s dtype'
+                            'Develop: paddle.nn.functional.layer_norm static grad is unstable in %s dtype'
                         )
                         % self.dtype,
                     )

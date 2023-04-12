@@ -111,7 +111,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
             out_eager_np,
             out_eager_develop,
             err_msg=(
-                'Incubate: compare matmul incubate eager forward res with develop eager forward res failed in %s dtype'
+                'Incubate: compare layer_norm incubate eager forward res with develop eager forward res failed in %s dtype'
             )
             % self.dtype,
         )
@@ -120,7 +120,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
                 out_grads_eager_np[idx],
                 out_eager_grads_develop[idx],
             err_msg=(
-                'Incubate: compare matmul incubate eager grad res with develop eager grad res failed in %s dtype'
+                'Incubate: compare layer_norm incubate eager grad res with develop eager grad res failed in %s dtype'
             )
                 % self.dtype,
             )
@@ -209,7 +209,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
             out_static,
             out_static_develop,
             err_msg=(
-                'Incubate: compare matmul incubate static forward res with develop static forward res failed in %s dtype'
+                'Incubate: compare layer_norm incubate static forward res with develop static forward res failed in %s dtype'
             )
             % self.dtype,
         )
@@ -218,7 +218,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
                 out_grads_static[idx],
                 out_grads_static_develop[idx],
             err_msg=(
-                'Incubate: compare matmul incubate static grad res with develop static grad res failed in %s dtype'
+                'Incubate: compare layer_norm incubate static grad res with develop static grad res failed in %s dtype'
             )
                 % self.dtype,
             )
@@ -246,7 +246,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
-                    'Develop: paddle.matmul eager forward is unstable in %s dtype'
+                    'Develop: paddle.nn.functional.layer_norm eager forward is unstable in %s dtype'
                 )
                 % self.dtype,
             )
@@ -255,7 +255,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.matmul eager grad is unstable in %s dtype'
+                        'Develop: paddle.nn.functional.layer_norm eager grad is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -293,7 +293,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
                     out_static,
                     out_static_baseline,
                     err_msg=(
-                        'Develop: paddle.matmul static forward is unstable in %s dtype'
+                        'Develop: paddle.nn.functional.layer_norm static forward is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -302,7 +302,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.matmul static grad is unstable in %s dtype'
+                            'Develop: paddle.nn.functional.layer_norm static grad is unstable in %s dtype'
                         )
                         % self.dtype,
                     )
