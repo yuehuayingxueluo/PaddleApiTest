@@ -73,7 +73,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.scale(x, scale, bias, bias_after_scale)
+        out = paddle.fluid.layers.scale(x, scale, bias, bias_after_scale)
         out_grads = paddle.grad(
             [out], [x], grad_outputs=[dout]
         )
@@ -86,7 +86,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.scale(x, scale, bias, bias_after_scale)
+        out = paddle.fluid.layers.scale(x, scale, bias, bias_after_scale)
         out_grads = paddle.static.gradients(
             [out], [x], target_gradients=[dout]
         )
@@ -206,7 +206,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
-                    'Develop: paddle.scale eager forward is unstable in %s dtype'
+                    'Develop: paddle.fluid.layers.scale eager forward is unstable in %s dtype'
                 )
                 % self.dtype,
             )
@@ -215,7 +215,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.scale eager grad is unstable in %s dtype'
+                        'Develop: paddle.fluid.layers.scale eager grad is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -253,7 +253,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
                     out_static,
                     out_static_baseline,
                     err_msg=(
-                        'Develop: paddle.scale static forward is unstable in %s dtype'
+                        'Develop: paddle.fluid.layers.scale static forward is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -262,7 +262,7 @@ class TestScaleIncubateCase1_FP32(unittest.TestCase):
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.scale static grad is unstable in %s dtype'
+                            'Develop: paddle.fluid.layers.scale static grad is unstable in %s dtype'
                         )
                         % self.dtype,
                     )
