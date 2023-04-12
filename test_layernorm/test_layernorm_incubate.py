@@ -35,7 +35,8 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
+            self.np_weight = self.np_weight.astype("float16")
+            self.np_bias = self.np_bias.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
     
     def gen_eager_inputs_and_dout(self):
@@ -224,8 +225,9 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
             )
 
     def test_eager_stability(self):
-        x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
-        out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(x_eager, y_eager, self.transpose_x, self.transpose_y, dout_eager)
+        x_eager, weight_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(x_eager, weight_eager, bias_eager, dout_eager)
+        
         out_eager_baseline_np = out_eager_baseline.numpy()
         out_grads_eager_baseline_np = map_structure(
                                 lambda x: x.numpy(),
@@ -236,7 +238,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
         paddle.device.cuda.empty_cache()
 
         for i in range(50):
-            out_eager, out_grads_eager = self.cal_eager_res(x_eager, y_eager, self.transpose_x, self.transpose_y, dout_eager)
+            out_eager, out_grads_eager = self.cal_eager_res(x_eager, weight_eager, bias_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
                                     lambda x: x.numpy(),
@@ -264,28 +266,28 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
         with paddle.fluid.framework._dygraph_guard(None):
             mp, sp = paddle.static.Program(), paddle.static.Program()
             with paddle.static.program_guard(mp, sp):
-                x_static, y_static, dout_static = self.gen_static_inputs_and_dout()
+                x_static, weight_static, bias_static, dout_static = self.gen_static_inputs_and_dout()
+                
                 (out_static_pg, out_grads_static_pg) = self.cal_static_res(
                     x_static,
-                    y_static,
-                    self.transpose_x,
-                    self.transpose_y,
+                    weight_static,
+                    bias_static,
                     dout_static,
-                )
+            )
             exe = paddle.static.Executor(
                 place=paddle.CUDAPlace(0)
             )
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
+                feed={"x": self.np_x, "weight": self.np_weight, "bias": self.np_bias, "dout": self.np_dout},
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             for i in range(50):
                 out = exe.run(
                     mp,
-                    feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
+                    feed={"x": self.np_x, "weight": self.np_weight, "bias": self.np_bias, "dout": self.np_dout},
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
@@ -323,8 +325,8 @@ class TestLayerNormIncubateCase1_BFP16(TestLayerNormIncubateCase1_FP32):
         self.epsilon = 1e-05
         self.begin_norm_axis = 1
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case1_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case1_bfp16.npz"
+        self.save_static_res_path = "./static_develop_res_case1_bf16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case1_bf16.npz"
 
 class TestLayerNormIncubateCase2_FP32(TestLayerNormIncubateCase1_FP32):
     def init_params(self):
@@ -350,8 +352,8 @@ class TestLayerNormIncubateCase2_BFP16(TestLayerNormIncubateCase1_FP32):
         self.epsilon = 1e-05
         self.begin_norm_axis = 2
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
+        self.save_static_res_path = "./static_develop_res_case2_bf16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case2_bf16.npz"
 
 class TestLayerNormIncubateCase3_FP32(TestLayerNormIncubateCase1_FP32):
     def init_params(self):
@@ -377,8 +379,8 @@ class TestLayerNormIncubateCase3_BFP16(TestLayerNormIncubateCase1_FP32):
         self.epsilon = 1e-12
         self.begin_norm_axis = 2
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
+        self.save_static_res_path = "./static_develop_res_case3_bf16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_bf16.npz"
 
 if __name__ == '__main__':
     unittest.main()
