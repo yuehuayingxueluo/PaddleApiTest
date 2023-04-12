@@ -111,7 +111,7 @@ class TestGeluIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        out = paddle.nn.functional.gelu(x_t)
+        out = paddle.fluid.layers.gelu(x_t)
         out_grads = paddle.grad(
             [out], [x], grad_outputs=[dout_t], retain_graph=True
         )
@@ -125,7 +125,7 @@ class TestGeluIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        out = paddle.nn.functional.gelu(x_t)
+        out = paddle.fluid.layers.gelu(x_t)
         out_grads = paddle.static.gradients(
             [out], [x], target_gradients=[dout_t]
         )
