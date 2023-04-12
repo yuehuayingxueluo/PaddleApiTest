@@ -59,13 +59,13 @@ class TestFullIncubateCase1_FP32(unittest.TestCase):
         return shape_static, fill_value_static, dtype_static
 
     def cal_eager_res(self, shape, fill_value, dtype):
-        out = paddle.full(shape, fill_value, dtype)
+        out = paddle.fluid.layers.fill_constant(shape, dtype, fill_value)
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out
 
     def cal_static_res(self, shape, fill_value, dtype):
-        out = paddle.full(shape, fill_value, dtype)
+        out = paddle.fluid.layers.fill_constant(shape, dtype, fill_value)
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out
@@ -93,7 +93,7 @@ class TestFullIncubateCase1_FP32(unittest.TestCase):
             out_eager_np,
             out_eager_develop,
             err_msg=(
-                'Incubate: compare full incubate eager forward res with develop eager forward res failed in %s dtype'
+                'Incubate: compare fill_constant incubate eager forward res with develop eager forward res failed in %s dtype'
             )
             % self.dtype,
         )
@@ -130,7 +130,7 @@ class TestFullIncubateCase1_FP32(unittest.TestCase):
             out_static,
             out_static_develop,
             err_msg=(
-                'Incubate: compare full incubate static forward res with develop static forward res failed in %s dtype'
+                'Incubate: compare fill_constant incubate static forward res with develop static forward res failed in %s dtype'
             )
             % self.dtype,
         )
