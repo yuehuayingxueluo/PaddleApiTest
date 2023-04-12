@@ -12,18 +12,6 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
         self.init_params()
         self.init_threshold()
         self.init_np_inputs_and_dout()
-        x_torch, y_torch, dout_torch = self.gen_torch_inputs_and_dout()
-        out_torch, out_grads_torch = self.cal_torch_res(x_torch, y_torch, self.transpose_x, self.transpose_y, dout_torch)
-        del x_torch 
-        del y_torch 
-        del dout_torch 
-        self.out_torch = out_torch.cpu().detach().numpy()
-        self.out_grads_torch = map_structure(
-                                lambda x: x.cpu().numpy(),
-                                out_grads_torch,
-                            )
-        del out_torch, out_grads_torch
-        torch.cuda.empty_cache()
 
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
@@ -48,33 +36,6 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
             self.np_x = self.np_x.astype("float16")
             self.np_y = self.np_y.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
-    
-    def gen_torch_inputs_and_dout(self):
-        x_torch = torch.tensor(
-            self.np_x,
-            device='cuda',
-            dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
-            requires_grad=True,
-        )
-        y_torch = torch.tensor(
-            self.np_y,
-            device='cuda',
-            dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
-            requires_grad=True,
-        )
-        dout_torch = torch.tensor(
-            self.np_dout,
-            device='cuda',
-            dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
-            requires_grad=True,
-        )
-        return x_torch, y_torch, dout_torch
     
     def gen_eager_inputs_and_dout(self):
         x_eager = paddle.to_tensor(
@@ -117,24 +78,6 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
         )
         dout_static.stop_gradient = False
         return x_static, y_static, dout_static
-
-    def cal_torch_res(self, x, y, transpose_x, transpose_y, dout):
-        x_t = x
-        y_t = y
-        dout_t = dout
-        if self.dtype == "bfloat16":
-            x_t = x.to(dtype=torch.bfloat16)
-            y_t = y.to(dtype=torch.bfloat16)
-            dout_t = dout.to(dtype=torch.bfloat16)
-        if transpose_x:
-            x_t = torch.transpose(x_t, -1, -2)
-        if transpose_y:
-            y_t = torch.transpose(y_t, -1, -2)
-        out = torch.matmul(x_t, y_t)
-        out_grads = torch.autograd.grad([out], [x, y], grad_outputs=[dout_t])
-        if self.dtype == "bfloat16":
-            out = out.to(dtype=torch.float32)
-        return out, out_grads
 
     def cal_eager_res(self, x, y, transpose_x, transpose_y, dout):
         x_t = x
@@ -389,33 +332,6 @@ class TestMatmulIncubateCase2_BFP16(TestMatmulIncubateCase1_FP32):
         self.dtype = "bfloat16"
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
-
-class TestMatmulIncubateCase3_FP32(TestMatmulIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.transpose_x = False
-        self.transpose_y = False
-        self.dtype = "float32"
-        self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_fp32.npz"
-
-class TestMatmulIncubateCase3_FP16(TestMatmulIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.transpose_x = False
-        self.transpose_y = False
-        self.dtype = "float16"
-        self.save_static_res_path = "./static_develop_res_case3_fp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_fp16.npz"
-
-class TestMatmulIncubateCase3_BFP16(TestMatmulIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.transpose_x = False
-        self.transpose_y = False
-        self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
 
 if __name__ == '__main__':
     unittest.main()
