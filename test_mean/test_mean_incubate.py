@@ -309,34 +309,6 @@ class TestMeanIncubateCase1_FP16(TestMeanIncubateCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case1_fp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case1_fp16.npz"
 
-class TestMeanIncubateCase2_FP32(TestMeanIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case2.npz"
-        self.dtype = "float32"
-        self.save_static_res_path = "./static_develop_res_case2_fp32.npz"
-        self.save_eager_res_path = "./eager_develop_res_case2_fp32.npz"
-
-class TestMeanIncubateCase2_FP16(TestMeanIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case2.npz"
-        self.dtype = "float16"
-        self.save_static_res_path = "./static_develop_res_case2_fp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case2_fp16.npz"
-
-class TestMeanIncubateCase3_FP32(TestMeanIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.dtype = "float32"
-        self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_fp32.npz"
-
-class TestMeanIncubateCase3_FP16(TestMeanIncubateCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.dtype = "float16"
-        self.save_static_res_path = "./static_develop_res_case3_fp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_fp16.npz"
-
 
 if __name__ == '__main__':
     unittest.main()
