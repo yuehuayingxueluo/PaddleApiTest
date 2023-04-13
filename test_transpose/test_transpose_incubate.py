@@ -69,7 +69,7 @@ class TestTransposeIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        out = paddle.transpose(x_t, [0, 2, 1, 3])
+        out = paddle.fluid.layers.transpose(x_t, [0, 2, 1, 3])
         out_grads = paddle.grad(
             [out], [x], grad_outputs=[dout_t], retain_graph=True
         )
@@ -83,7 +83,7 @@ class TestTransposeIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        out = paddle.transpose(x_t, [0, 2, 1, 3])
+        out = paddle.fluid.layers.transpose(x_t, [0, 2, 1, 3])
         out_grads = paddle.static.gradients(
             [out], [x], target_gradients=[dout_t]
         )
