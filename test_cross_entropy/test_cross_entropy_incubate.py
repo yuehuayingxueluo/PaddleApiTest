@@ -1,3 +1,4 @@
+from utils import TOLERANCE, convert_dtype_to_torch_type
 import numpy as np
 import paddle
 import torch
@@ -5,7 +6,7 @@ import unittest
 from paddle.fluid.layers.utils import map_structure
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+
 
 class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
     def setUp(self):
@@ -18,7 +19,7 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
         self.dtype = "float32"
         self.save_static_res_path = "./static_develop_res_case1_fp32.npz"
         self.save_eager_res_path = "./eager_develop_res_case1_fp32.npz"
-    
+
     def init_threshold(self):
         self.atol = TOLERANCE[self.dtype]["atol"]
         self.rtol = TOLERANCE[self.dtype]["rtol"]
@@ -34,7 +35,7 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
             self.np_logits = self.np_logits.astype("float16")
             self.np_label = self.np_label.astype("int64")
             self.np_dout = self.np_dout.astype("float16")
-    
+
     def gen_eager_inputs_and_dout(self):
         logits_eager = paddle.to_tensor(
             self.np_logits,
@@ -94,6 +95,7 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out, out_grads
+
     def cal_static_res(self, logits, label, dout):
         logits_t = logits
         label_t = label
@@ -124,16 +126,17 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
         out_eager_grads_develop = [out_eager_grad_0_develop]
 
         logits_eager, label_eager, dout_eager = self.gen_eager_inputs_and_dout()
-        out_eager, out_grads_eager = self.cal_eager_res(logits_eager, label_eager, dout_eager)
+        out_eager, out_grads_eager = self.cal_eager_res(
+            logits_eager, label_eager, dout_eager)
         del logits_eager
-        del label_eager 
+        del label_eager
         del dout_eager
         paddle.device.cuda.empty_cache()
         out_eager_np = out_eager.numpy()
         out_grads_eager_np = map_structure(
-                                lambda x: x.numpy(),
-                                out_grads_eager,
-                            )
+            lambda x: x.numpy(),
+            out_grads_eager,
+        )
         del out_eager
         del out_grads_eager
         paddle.device.cuda.empty_cache()
@@ -150,12 +153,12 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
             np.testing.assert_equal(
                 out_grads_eager_np[idx],
                 out_eager_grads_develop[idx],
-            err_msg=(
-                'Incubate: compare cross_entropy incubate eager grad res with develop eager grad res failed in %s dtype'
-            )
+                err_msg=(
+                    'Incubate: compare cross_entropy incubate eager grad res with develop eager grad res failed in %s dtype'
+                )
                 % self.dtype,
             )
-    
+
     def test_static_accuracy(self):
         # get develop static res
         develop_res_array = np.load(self.save_static_res_path)
@@ -172,18 +175,19 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
                     logits_static,
                     label_static,
                     dout_static,
-            )
+                )
             exe = paddle.static.Executor(
                 place=paddle.CUDAPlace(0)
             )
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"logits": self.np_logits, "label": self.np_label, "dout": self.np_dout},
+                feed={"logits": self.np_logits,
+                      "label": self.np_label, "dout": self.np_dout},
                 fetch_list=[out_static] + out_grads_static,
             )
             out_static, out_grads_static = out[0], out[1:]
-        
+
         # compare incubate static res with develop static res
         np.testing.assert_equal(
             out_static,
@@ -197,31 +201,33 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
             np.testing.assert_equal(
                 out_grads_static[idx],
                 out_grads_static_develop[idx],
-            err_msg=(
-                'Incubate: compare cross_entropy incubate static grad res with develop static grad res failed in %s dtype'
-            )
+                err_msg=(
+                    'Incubate: compare cross_entropy incubate static grad res with develop static grad res failed in %s dtype'
+                )
                 % self.dtype,
             )
 
     def test_eager_stability(self):
         logits_eager, label_eager, dout_eager = self.gen_eager_inputs_and_dout()
-        out_eager, out_grads_eager = self.cal_eager_res(logits_eager, label_eager, dout_eager)
+        out_eager, out_grads_eager = self.cal_eager_res(
+            logits_eager, label_eager, dout_eager)
         out_eager_baseline_np = out_eager.numpy()
         out_grads_eager_baseline_np = map_structure(
-                                lambda x: x.numpy(),
-                                out_grads_eager,
-                            )
+            lambda x: x.numpy(),
+            out_grads_eager,
+        )
         del out_eager
         del out_grads_eager
         paddle.device.cuda.empty_cache()
 
         for i in range(50):
-            out_eager, out_grads_eager = self.cal_eager_res(logits_eager, label_eager, dout_eager)
+            out_eager, out_grads_eager = self.cal_eager_res(
+                logits_eager, label_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
-                                    lambda x: x.numpy(),
-                                    out_grads_eager,
-                                )
+                lambda x: x.numpy(),
+                out_grads_eager,
+            )
             np.testing.assert_equal(
                 out_eager,
                 out_eager_baseline_np,
@@ -256,14 +262,16 @@ class TestCrossEntropyLossIncubateCase1_FP32(unittest.TestCase):
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"logits": self.np_logits, "label": self.np_label, "dout": self.np_dout},
+                feed={"logits": self.np_logits,
+                      "label": self.np_label, "dout": self.np_dout},
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             for i in range(50):
                 out = exe.run(
                     mp,
-                    feed={"logits": self.np_logits, "label": self.np_label, "dout": self.np_dout},
+                    feed={"logits": self.np_logits,
+                          "label": self.np_label, "dout": self.np_dout},
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
@@ -293,12 +301,14 @@ class TestCrossEntropyDevelopCase1_FP16(TestCrossEntropyLossIncubateCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case1_fp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case1_fp16.npz"
 
+
 class TestCrossEntropyDevelopCase2_BFP16(TestCrossEntropyLossIncubateCase1_FP32):
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
         self.dtype = "bfloat16"
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
+
 
 if __name__ == '__main__':
     unittest.main()
