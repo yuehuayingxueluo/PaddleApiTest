@@ -14,16 +14,11 @@ def generate_np_inputs_and_dout():
     dout_case1 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
 
     x_case2 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
-    y_case2 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
-    dout_case2 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
-
-    x_case3 = np.random.random(size=[1, 32, 4096, 4096]).astype("float32")
-    y_case3 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
-    dout_case3 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    y_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    dout_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
 
     np.savez("./inputs_case1.npz", x = x_case1, y = y_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x = x_case2, y = y_case2, dout = dout_case2)
-    np.savez("./inputs_case3.npz", x = x_case3, y = y_case3, dout = dout_case3)
 
 
 class TestMatmulDevelopCase1_FP32(unittest.TestCase):
@@ -406,32 +401,6 @@ class TestMatmulDevelopCase2_BFP16(TestMatmulDevelopCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
 
-class TestMatmulDevelopCase3_FP32(TestMatmulDevelopCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.transpose_x = False
-        self.transpose_y = False
-        self.dtype = "float32"
-        self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_fp32.npz"
-
-class TestMatmulDevelopCase3_FP16(TestMatmulDevelopCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.transpose_x = False
-        self.transpose_y = False
-        self.dtype = "float16"
-        self.save_static_res_path = "./static_develop_res_case3_fp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_fp16.npz"
-
-class TestMatmulDevelopCase3_BFP16(TestMatmulDevelopCase1_FP32):
-    def init_params(self):
-        self.np_input_dir = "./inputs_case3.npz"
-        self.transpose_x = False
-        self.transpose_y = False
-        self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
 
 if __name__ == '__main__':
     generate_np_inputs_and_dout()
