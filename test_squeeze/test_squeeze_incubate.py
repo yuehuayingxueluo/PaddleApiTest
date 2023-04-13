@@ -14,7 +14,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
 
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
-        self.axis = -1
+        self.axes = [-1]
         self.dtype = "float32"
         self.save_static_res_path = "./static_develop_res_case1_fp32.npz"
         self.save_eager_res_path = "./eager_develop_res_case1_fp32.npz"
@@ -67,7 +67,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.squeeze(x, axis=self.axis)
+        out = paddle.fluid.layers.squeeze(x, axes=self.axes)
         out_grads = paddle.grad(
             [out], [x], grad_outputs=[dout]
         )
@@ -80,7 +80,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.squeeze(x, axis=self.axis)
+        out = paddle.fluid.layers.squeeze(x, axes=self.axes)
         out_grads = paddle.static.gradients(
             [out], [x], target_gradients=[dout]
         )
@@ -113,7 +113,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
             out_eager_np,
             out_eager_develop,
             err_msg=(
-                'Incubate: compare paddle.squeeze incubate eager forward res with develop eager forward res failed in %s dtype'
+                'Incubate: compare paddle.fluid.layers.squeeze incubate eager forward res with develop eager forward res failed in %s dtype'
             )
             % self.dtype,
         )
@@ -122,7 +122,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
                 out_grads_eager_np[idx],
                 out_eager_grads_develop[idx],
             err_msg=(
-                'Incubate: compare paddle.squeeze incubate eager grad res with develop eager grad res failed in %s dtype'
+                'Incubate: compare paddle.fluid.layers.squeeze incubate eager grad res with develop eager grad res failed in %s dtype'
             )
                 % self.dtype,
             )
@@ -158,7 +158,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
             out_static,
             out_static_develop,
             err_msg=(
-                'Incubate: compare paddle.squeeze incubate static forward res with develop static forward res failed in %s dtype'
+                'Incubate: compare paddle.fluid.layers.squeeze incubate static forward res with develop static forward res failed in %s dtype'
             )
             % self.dtype,
         )
@@ -167,7 +167,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
                 out_grads_static[idx],
                 out_grads_static_develop[idx],
             err_msg=(
-                'Incubate: compare paddle.squeeze incubate static grad res with develop static grad res failed in %s dtype'
+                'Incubate: compare paddle.fluid.layers.squeeze incubate static grad res with develop static grad res failed in %s dtype'
             )
                 % self.dtype,
             )
@@ -195,7 +195,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
-                    'Incubate: paddle.squeeze eager forward is unstable in %s dtype'
+                    'Incubate: paddle.fluid.layers.squeeze eager forward is unstable in %s dtype'
                 )
                 % self.dtype,
             )
@@ -204,7 +204,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Incubate: paddle.squeeze eager grad is unstable in %s dtype'
+                        'Incubate: paddle.fluid.layers.squeeze eager grad is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -239,7 +239,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
                     out_static,
                     out_static_baseline,
                     err_msg=(
-                        'Incubate: paddle.squeeze static forward is unstable in %s dtype'
+                        'Incubate: paddle.fluid.layers.squeeze static forward is unstable in %s dtype'
                     )
                     % self.dtype,
                 )
@@ -248,7 +248,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Incubate: paddle.squeeze static grad is unstable in %s dtype'
+                            'Incubate: paddle.fluid.layers.squeeze static grad is unstable in %s dtype'
                         )
                         % self.dtype,
                     )
@@ -257,7 +257,7 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
 class TestSqueezeIncubateCase1_FP16(TestSqueezeIncubateCase1_FP32):
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
-        self.axis = -1
+        self.axes = [-1]
         self.dtype = "float16"
         self.save_static_res_path = "./static_develop_res_case1_fp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case1_fp16.npz"
@@ -266,7 +266,7 @@ class TestSqueezeIncubateCase1_FP16(TestSqueezeIncubateCase1_FP32):
 class TestSqueezeIncubateCase1_BF16(TestSqueezeIncubateCase1_FP32):
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
-        self.axis = -1
+        self.axes = [-1]
         self.dtype = "bfloat16"
         self.save_static_res_path = "./static_develop_res_case1_bf16.npz"
         self.save_eager_res_path = "./eager_develop_res_case1_bf16.npz"
