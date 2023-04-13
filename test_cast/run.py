@@ -46,6 +46,8 @@ if __name__ == "__main__":
     CastAttr("float16", "float32"),
     CastAttr("uint16", "float32"),
     CastAttr("float32", "uint16"),
+    CastAttr("uint16", "float16"),
+    CastAttr("float16", "uint16"),
   )
 
   if (tag.startswith("paddle")):
