@@ -1,11 +1,10 @@
 import numpy as np
 import paddle
-import torch
 import unittest
 from paddle.fluid.layers.utils import map_structure
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import TOLERANCE
 
 class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
     def setUp(self):
@@ -77,7 +76,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
             bias_t = paddle.cast(bias, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
         out = paddle.nn.functional.layer_norm(x_t, x_t.shape[self.begin_norm_axis:], weight_t, bias_t, self.epsilon)
-        out_grads = paddle.grad([out], [x_t, weight_t, bias_t], grad_outputs=[dout_t])
+        out_grads = paddle.grad([out], [x, weight, bias], grad_outputs=[dout_t])
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out, out_grads
@@ -89,7 +88,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
         out_eager_grad_0_develop = develop_res_array["out_grads_eager_0"]
         out_eager_grad_1_develop = develop_res_array["out_grads_eager_1"]
         out_eager_grad_2_develop = develop_res_array["out_grads_eager_2"]
-        out_eager_grads_develop = [out_eager_grad_0_develop, out_eager_grad_1_develop, out_eager_grad_1_develop]
+        out_eager_grads_develop = [out_eager_grad_0_develop, out_eager_grad_1_develop, out_eager_grad_2_develop]
 
         # calculate incubate eager res
         x_eager, weight_eager, bias_eager, dout_eager = self.gen_eager_inputs_and_dout()
@@ -166,7 +165,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
             bias_t = paddle.cast(bias, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
         out = paddle.nn.functional.layer_norm(x_t, x_t.shape[self.begin_norm_axis:], weight_t, bias_t, self.epsilon)
-        out_grads = paddle.static.gradients([out], [x_t, weight_t, bias_t], target_gradients=[dout_t])
+        out_grads = paddle.static.gradients([out], [x, weight, bias], target_gradients=[dout_t])
         
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
@@ -181,7 +180,7 @@ class TestLayerNormIncubateCase1_FP32(unittest.TestCase):
         out_grads_static_0_develop = develop_res_array["out_grads_static_0"]
         out_grads_static_1_develop = develop_res_array["out_grads_static_1"]
         out_grads_static_2_develop = develop_res_array["out_grads_static_2"]
-        out_grads_static_develop = [out_grads_static_0_develop, out_grads_static_1_develop, out_grads_static_1_develop]
+        out_grads_static_develop = [out_grads_static_0_develop, out_grads_static_1_develop, out_grads_static_2_develop]
 
         # calculate incubate static res
         with paddle.fluid.framework._dygraph_guard(None):
