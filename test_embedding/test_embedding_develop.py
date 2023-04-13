@@ -159,7 +159,9 @@ class TestEmbeddingDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             w_t = paddle.cast(w, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        out = paddle.nn.functional.embedding(x_t, w_t)
+        embedding = paddle.nn.Embedding(self.np_w.shape[0], self.np_w.shape[1])
+        paddle.assign(w_t, embedding.weight)
+        out = embedding(x_t)
         out_grads = paddle.static.gradients(
             [out], [w], target_gradients=[dout_t]
         )
