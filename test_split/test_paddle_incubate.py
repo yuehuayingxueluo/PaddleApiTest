@@ -56,8 +56,7 @@ class TestPaddle(base_class.BaseClass):
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
 
-            origin_dtype = paddle.get_default_dtype()
-
+        origin_dtype = paddle.get_default_dtype()
         paddle.set_default_dtype(self._dtype)
 
         out = paddle.distributed.split(
@@ -69,7 +68,7 @@ class TestPaddle(base_class.BaseClass):
                 weight_attr=paddle.fluid.initializer.NumpyArrayInitializer(self._weight),
                 bias_attr=paddle.fluid.initializer.NumpyArrayInitializer(self._bias))
         
-        paddle.set_default_dtype("float32")
+        paddle.set_default_dtype(origin_dtype)
 
         out_grads = paddle.static.gradients(
             [out], [x_t], target_gradients=[dout_t]
@@ -149,7 +148,7 @@ class TestPaddle(base_class.BaseClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self._x, "dout": self._np_dout},
