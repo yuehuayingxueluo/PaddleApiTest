@@ -224,7 +224,7 @@ class TestPaddle(base_class.BaseClass):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(1):
+        for i in range(50):
             out_eager, out_grads_eager = self._cal_eager_res(x_eager, table_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager.numpy()
@@ -275,7 +275,7 @@ class TestPaddle(base_class.BaseClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(1):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self._np_x, "table": self._np_paddle_table, "dout": self._np_dout},
@@ -324,22 +324,23 @@ set_random_seed(1024)
 
 group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
 
-for dtype_id, dtype in enumerate(dtype_list):
+for dtype_id, dtype in dtype_list:
 
     np_input_dir = "./inputs_case{id_b}.npz".format(id_b=(dtype_id + 1))
+    dtype = dtype
     save_static_res_path = "./static_develop_res_case1_{dtype}.npz".format(dtype=dtype) 
     save_eager_res_path = "./eager_develop_res_case1_{dtype}.npz".format(dtype=dtype)
     torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
 
     test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
     test_paddle._test_eager_accuracy()
-    print("eager success")
+    print("eager {dtype} success".format(dtype=dtype))
     test_paddle._test_static_accuracy()
-    print("static success")
+    print("static {dtype} success".format(dtype=dtype))
     test_paddle._test_eager_stability()
-    print("eager_stability success")
+    print("eager_stability {dtype}  success".format(dtype=dtype))
     test_paddle._test_static_stability()
-    print("static_stability success")
-
-    print("{dtype} success".format(dtype=dtype))
+    print("static_stability {dtype}  success".format(dtype=dtype))
+    
+    print("{dtype} success".format(dtype = dtype))
 

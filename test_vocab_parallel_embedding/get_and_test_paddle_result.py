@@ -332,22 +332,23 @@ set_random_seed(1024)
 
 group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
 
-for dtype_id, dtype in enumerate(dtype_list):
+for dtype in dtype_list:
 
-    np_input_dir = "./inputs_case{id_b}.npz".format(id_b=(dtype_id + 1))
+    np_input_dir = "./inputs_case1.npz"
+    dtype = dtype
     save_static_res_path = "./static_develop_res_case1_{dtype}.npz".format(dtype=dtype) 
     save_eager_res_path = "./eager_develop_res_case1_{dtype}.npz".format(dtype=dtype)
     torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
 
     test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
     test_paddle._test_eager_accuracy()
-    print("eager success")
+    print("eager {dtype} success".format(dtype=dtype))
     test_paddle._test_static_accuracy()
-    print("static success")
+    print("static {dtype} success".format(dtype=dtype))
     test_paddle._test_eager_stability()
-    print("eager_stability success")
+    print("eager_stability {dtype}  success".format(dtype=dtype))
     test_paddle._test_static_stability()
-    print("static_stability success")
+    print("static_stability {dtype}  success".format(dtype=dtype))
 
-    print("{dtype} success".format(dtype=dtype))
+    print("{dtype} success".format(dtype = dtype))
 
