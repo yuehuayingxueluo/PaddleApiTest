@@ -11,7 +11,7 @@ from utils import TOLERANCE, convert_dtype_to_torch_type
 def generate_np_inputs_and_dout():
     x_case1 = np.random.random(size=[1, 1]).astype("float32")
     dout_case1 = np.random.random(size=[1]).astype("float32")
-    dout_t_case1 = np.random.random(size=[]).astype("float32")
+    dout_t_case1 = np.array(dout_case1[0], dtype="float32" )
 
     np.savez("./inputs_case1.npz", x = x_case1, dout = dout_case1, dout_t = dout_t_case1)
 
