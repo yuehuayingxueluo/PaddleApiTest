@@ -45,7 +45,6 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
             dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
             place="gpu",
         )
-        dout_eager.stop_gradient = False
         return x_eager, dout_eager
 
     def gen_static_inputs_and_dout(self):
@@ -60,7 +59,6 @@ class TestSqueezeIncubateCase1_FP32(unittest.TestCase):
             shape=self.np_dout.shape,
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
-        dout_static.stop_gradient = False
         return x_static, dout_static
 
     def cal_eager_res(self, x, dout):
