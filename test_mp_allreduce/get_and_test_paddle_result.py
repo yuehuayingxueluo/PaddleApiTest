@@ -62,7 +62,7 @@ class TestPaddle(base_class.BaseClass):
             [out], [x], grad_outputs=[dout_t]
         )
 
-        paddle.device.synchronize()        
+        out_grads = out_grads[0]     
 
         if self._dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
@@ -81,6 +81,8 @@ class TestPaddle(base_class.BaseClass):
             [out], [x], target_gradients=[dout_t]
         )
 
+        out_grads = out_grads[0]
+
         if self._dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
             out_grads =  paddle.cast(out_grads, dtype="float32")
@@ -94,7 +96,7 @@ class TestPaddle(base_class.BaseClass):
         del dout_eager
         paddle.device.cuda.empty_cache()
         out_eager_np = out_eager.numpy()
-        out_grads_eager_np = out_grads_eager[0].numpy()
+        out_grads_eager_np = out_grads_eager.numpy()
 
         del out_eager
         del out_grads_eager
@@ -148,7 +150,7 @@ class TestPaddle(base_class.BaseClass):
             out = exe.run(
                 mp,
                 feed={"x": self._np_x, "dout": self._np_dout},
-                fetch_list=[out_static] + out_grads_static,
+                fetch_list=[out_static] + [out_grads_static],
             )
             out_static, out_grads_static = out[0], out[1:]
         
@@ -191,7 +193,7 @@ class TestPaddle(base_class.BaseClass):
         x_eager, dout_eager = self._gen_eager_inputs_and_dout()
         out_eager_baseline, out_grads_eager_baseline = self._cal_eager_res(x_eager, dout_eager)
         out_eager_baseline_np = out_eager_baseline.numpy()
-        out_grads_eager_baseline_np = out_grads_eager_baseline[0].numpy()
+        out_grads_eager_baseline_np = out_grads_eager_baseline.numpy()
         del out_eager_baseline
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
@@ -199,7 +201,7 @@ class TestPaddle(base_class.BaseClass):
         for i in range(50):
             out_eager, out_grads_eager = self._cal_eager_res(x_eager, dout_eager)
             out_eager = out_eager.numpy()
-            out_grads_eager = out_grads_eager[0].numpy()
+            out_grads_eager = out_grads_eager.numpy()
 
             if paddle.distributed.get_rank() == 0:
                 try: 
@@ -242,7 +244,7 @@ class TestPaddle(base_class.BaseClass):
             out = exe.run(
                 mp,
                 feed={"x": self._np_x, "dout": self._np_dout},
-                fetch_list=[out_static_pg] + out_grads_static_pg,
+                fetch_list=[out_static_pg] + [out_grads_static_pg],
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
@@ -250,7 +252,7 @@ class TestPaddle(base_class.BaseClass):
                 out = exe.run(
                     mp,
                     feed={"x": self._np_x, "dout": self._np_dout},
-                    fetch_list=[out_static_pg] + out_grads_static_pg,
+                    fetch_list=[out_static_pg] + [out_grads_static_pg],
                 )
                 out_static, out_grads_static = out[0], out[1:]
 
