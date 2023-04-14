@@ -156,7 +156,7 @@ class TestPaddle(base_class.BaseClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(1):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self._x, "dout": self._np_dout},
