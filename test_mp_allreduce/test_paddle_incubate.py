@@ -249,7 +249,6 @@ for shape_id, shape in enumerate(shape_list):
     for dtype_id, dtype in enumerate(dtype_list):
 
         np_input_dir = "./{id_f}_inputs_case{id_b}.npz".format(id_f=shape_id + 1, id_b=(dtype_id + 1))
-        dtype = dtype
         save_static_res_path = "./{id}_static_develop_res_case1_{dtype}.npz".format(id=(shape_id + 1), dtype=dtype) 
         save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}.npz".format(id=(shape_id + 1), dtype=dtype)
 
@@ -263,5 +262,5 @@ for shape_id, shape in enumerate(shape_list):
         test_paddle._test_static_stability()
         print("static_stability success")
 
-        print("{dtype} success".format(dtype = dtype))
+        print("{dtype} success".format(dtype=dtype))
 

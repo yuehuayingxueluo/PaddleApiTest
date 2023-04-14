@@ -72,7 +72,6 @@ for shape_id, shape in enumerate(shape_list):
     for dtype_id, dtype in enumerate(dtype_list):
 
         np_input_dir = "./{id_f}_inputs_case{id_b}.npz".format(id_f=shape_id + 1, id_b=(dtype_id + 1))
-        dtype = dtype
         torch_dir = "{shape_id}_torch_out_{dtype}.npz".format(shape_id=shape_id+1, dtype=dtype)
 
         test_torch = TestTorch(group ,device, np_input_dir, dtype, torch_dir)
