@@ -113,7 +113,6 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
             shape=self.np_label.shape,
             dtype="int64",
         )
-        # label_static.stop_gradient = False
         dout_static = paddle.static.data(
             'dout',
             shape=self.np_dout.shape,
