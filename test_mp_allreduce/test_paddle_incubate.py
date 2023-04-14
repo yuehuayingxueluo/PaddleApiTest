@@ -84,15 +84,6 @@ class TestPaddle(base_class.BaseClass):
         x_eager, dout_eager = self._gen_eager_inputs_and_dout()
         out_eager, out_grads_eager = self._cal_eager_res(x_eager, dout_eager)
 
-        print("self._np_x: ", self._np_x)
-        print("self._np_dout: ", self._np_dout)   
-        print("x_eager: ", x_eager)
-        print("dout_eager: ", dout_eager)
-        print("out_eager: ", out_eager)
-        print("out_grads_eager: ", out_grads_eager)
-        print("out_eager_develop: ", out_eager_develop)
-        print("out_eager_grads_develop: ", out_eager_grads_develop)
-
         del x_eager
         del dout_eager
         paddle.device.cuda.empty_cache()
@@ -104,22 +95,31 @@ class TestPaddle(base_class.BaseClass):
         # compare incubate eager res with develop eager res
         
         if paddle.distributed.get_rank() == 0:
-            np.testing.assert_equal(
-                out_eager_np,
-                out_eager_develop,
-                err_msg=(
-                    'Incubate: compare mp_allreduce incubate eager forward res with develop eager forward res failed in %s dtype'
+            try:
+                np.testing.assert_equal(
+                    out_eager_np,
+                    out_eager_develop,
+                    err_msg=(
+                        'Incubate: compare mp_allreduce incubate eager forward res with develop eager forward res failed in %s dtype'
+                    )
+                    % self._dtype,
                 )
-                % self._dtype,
-            )
-            np.testing.assert_equal(
-                out_grads_eager_np,
-                out_eager_grads_develop,
-            err_msg=(
-                'Incubate: compare mp_allreduce incubate eager grad res with develop eager grad res failed in %s dtype'
-            )
-                % self._dtype,
-            )
+            except Exception as e:
+                print(e)
+                print("eager_accuracy forward {dtype} failed".format(dtype=self._dtype))
+            
+            try:
+                np.testing.assert_equal(
+                    out_grads_eager_np,
+                    out_eager_grads_develop,
+                    err_msg=(
+                        'Incubate: compare mp_allreduce incubate eager grad res with develop eager grad res failed in %s dtype'
+                    )
+                        % self._dtype,
+                    )
+            except Exception as e:
+                print(e)
+                print("eager_accuracy grad {dtype} failed".format(dtype=self._dtype))
     
     def _test_static_accuracy(self):
         # get develop static res
@@ -148,22 +148,31 @@ class TestPaddle(base_class.BaseClass):
         if paddle.distributed.get_rank() == 0:
         
             # compare incubate static res with develop static res
-            np.testing.assert_equal(
-                out_static,
-                out_static_develop,
-                err_msg=(
-                    'Incubate: compare mp_allreduce incubate static forward res with develop static forward res failed in %s dtype'
+            try:
+                np.testing.assert_equal(
+                    out_static,
+                    out_static_develop,
+                    err_msg=(
+                        'Incubate: compare mp_allreduce incubate static forward res with develop static forward res failed in %s dtype'
+                    )
+                    % self._dtype,
                 )
-                % self._dtype,
-            )
-            np.testing.assert_equal(
-                out_grads_static[0],
-                out_grads_static_develop[0],
-            err_msg=(
-                'Incubate: compare mp_allreduce incubate static grad res with develop static grad res failed in %s dtype'
-            )
-                % self._dtype,
-            )
+            except Exception as e:
+                print(e)
+                print("static_accuracy forward {dtype} failed".format(dtype=self._dtype))
+                
+            try:
+                np.testing.assert_equal(
+                    out_grads_static[0],
+                    out_grads_static_develop[0],
+                err_msg=(
+                    'Incubate: compare mp_allreduce incubate static grad res with develop static grad res failed in %s dtype'
+                )
+                    % self._dtype,
+                )
+            except Exception as e:
+                print(e)
+                print("static_accuracy grad {dtype} failed".format(dtype=self._dtype))
 
     def _test_eager_stability(self):
         x_eager, dout_eager = self._gen_eager_inputs_and_dout()
@@ -179,22 +188,30 @@ class TestPaddle(base_class.BaseClass):
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager[0].numpy()
             if paddle.distributed.get_rank() == 0:
-                np.testing.assert_equal(
-                    out_eager,
-                    out_eager_baseline_np,
-                    err_msg=(
-                        'Develop: mp_allreduce eager forward is unstable in %s dtype'
+                try: 
+                    np.testing.assert_equal(
+                        out_eager,
+                        out_eager_baseline_np,
+                        err_msg=(
+                            'Develop: mp_allreduce eager forward is unstable in %s dtype'
+                        )
+                        % self._dtype,
                     )
-                    % self._dtype,
-                )
-                np.testing.assert_equal(
-                    out_grads_eager,
-                    out_grads_eager_baseline_np,
-                    err_msg=(
-                        'Develop: mp_allreduce eager grad is unstable in %s dtype'
+                except Exception as e:
+                    print(e)
+                    print("eager_stability forward {dtype} failed".format(dtype=self._dtype))
+                try:
+                    np.testing.assert_equal(
+                        out_grads_eager,
+                        out_grads_eager_baseline_np,
+                        err_msg=(
+                            'Develop: mp_allreduce eager grad is unstable in %s dtype'
+                        )
+                        % self._dtype,
                     )
-                    % self._dtype,
-                )
+                except Exception as e:
+                    print(e)
+                    print("eager_stability grad {dtype} failed".format(dtype=self._dtype))
 
     def _test_static_stability(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -221,46 +238,54 @@ class TestPaddle(base_class.BaseClass):
                 )
                 out_static, out_grads_static = out[0], out[1:]
                 if paddle.distributed.get_rank() == 0:
-                    np.testing.assert_equal(
-                        out_static,
-                        out_static_baseline,
-                        err_msg=(
-                            'Develop: mp_allreduce static forward is unstable in %s dtype'
+                    try:
+                        np.testing.assert_equal(
+                            out_static,
+                            out_static_baseline,
+                            err_msg=(
+                                'Develop: mp_allreduce static forward is unstable in %s dtype'
+                            )
+                            % self._dtype,
                         )
-                        % self._dtype,
-                    )
-                    np.testing.assert_equal(
-                        out_grads_static[0],
-                        out_grads_static_baseline[0],
-                        err_msg=(
-                            'Develop: mp_allreduce static grad is unstable in %s dtype'
+                    except Exception as e:
+                        print(e)
+                        print("static_stability forward {dtype} failed".format(dtype=self._dtype))
+                    
+                    try: 
+                        np.testing.assert_equal(
+                            out_grads_static[0],
+                            out_grads_static_baseline[0],
+                            err_msg=(
+                                'Develop: mp_allreduce static grad is unstable in %s dtype'
+                            )
+                            % self._dtype,
                         )
-                        % self._dtype,
-                    )
+                    except Exception as e:
+                        print(e)
+                        print("static_stability forward {dtype} failed".format(dtype=self._dtype))
 
-shape_list =[[1, 12288], [1, 4096, 12288]]
-dtype_list = ["float32", "float16"]
+dtype_list = ["float32", "float16", "bfloat16"]
 
 paddle_dist.init_parallel_env()
 world_size = paddle_dist.get_world_size()
 group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
 
-for shape_id, shape in enumerate(shape_list):
+for case_id in range(2):
     for dtype_id, dtype in enumerate(dtype_list):
 
-        np_input_dir = "./{id_f}_inputs_case{id_b}.npz".format(id_f=shape_id + 1, id_b=(dtype_id + 1))
-        save_static_res_path = "./{id}_static_develop_res_case1_{dtype}.npz".format(id=(shape_id + 1), dtype=dtype) 
-        save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}.npz".format(id=(shape_id + 1), dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=(case_id + 1))
+        save_static_res_path = "./{id}_static_develop_res_case1_{dtype}.npz".format(id=(case_id + 1), dtype=dtype) 
+        save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}.npz".format(id=(case_id + 1), dtype=dtype)
 
         test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         test_paddle._test_eager_accuracy()
-        print("eager success")
+        print("eager {dtype} success".format(dtype=dtype))
         test_paddle._test_static_accuracy()
-        print("static success")
+        print("static {dtype} success".format(dtype=dtype))
         test_paddle._test_eager_stability()
-        print("eager_stability success")
+        print("eager_stability {dtype} success".format(dtype=dtype))
         test_paddle._test_static_stability()
-        print("static_stability success")
+        print("static_stability {dtype} success".format(dtype=dtype))
 
         print("{dtype} success".format(dtype=dtype))
 

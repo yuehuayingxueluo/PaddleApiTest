@@ -58,7 +58,6 @@ class TestTorch(base_class.BaseClass):
         
         return out, dout
 
-shape_list =[[1, 12288], [1, 4096, 12288]]
 dtype_list = ["float32", "float16", "bfloat16"]
 
 torch_dist.init_process_group(backend="nccl")
@@ -68,10 +67,10 @@ torch.cuda.set_device(local_rank)
 device = torch.device("cuda", local_rank)
 group = torch_dist.new_group([i for i in range(world_size)])
 
-for shape_id, shape in enumerate(shape_list):
-    for dtype_id, dtype in enumerate(dtype_list):
+for case_id in range(2):
+    for dtype in dtype_list:
 
-        np_input_dir = "./{id_f}_inputs_case{id_b}.npz".format(id_f=shape_id + 1, id_b=(dtype_id + 1))
-        torch_dir = "{shape_id}_torch_out_{dtype}.npz".format(shape_id=shape_id+1, dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=(case_id + 1))
+        torch_dir = "{case_id}_torch_out_{dtype}.npz".format(case_id=case_id+1, dtype=dtype)
 
         test_torch = TestTorch(group ,device, np_input_dir, dtype, torch_dir)
