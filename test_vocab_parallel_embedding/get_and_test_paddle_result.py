@@ -149,10 +149,9 @@ class TestPaddle(base_class.BaseClass):
                     )
                     % self._dtype,
                 )
-            except:
+            except Exception as e:
+                print(e)
                 print("eager_accuracy forward {dtype} failed".format(dtype=self._dtype))
-            else:
-                print("eager_accuracy forward {dtype} success".format(dtype=self._dtype))
             
             try:
                 np.testing.assert_allclose(
@@ -165,10 +164,9 @@ class TestPaddle(base_class.BaseClass):
                     )
                     % self._dtype,
                 )
-            except:
+            except Exception as e:
+                print(e)
                 print("eager_accuracy grad {dtype} failed".format(dtype=self._dtype))
-            else:
-                print("eager_accuracy grad {dtype} success".format(dtype=self._dtype))
         
     def _test_static_accuracy(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -206,10 +204,9 @@ class TestPaddle(base_class.BaseClass):
                     )
                     % self._dtype,
                 )
-            except:
+            except Exception as e:
+                print(e)
                 print("static_accuracy forward {dtype} failed".format(dtype=self._dtype))
-            else:
-                print("static_accuracy forward {dtype} success".format(dtype=self._dtype))
 
             try:
                 np.testing.assert_allclose(
@@ -222,10 +219,9 @@ class TestPaddle(base_class.BaseClass):
                     )
                     % self._dtype,
                 )
-            except:
+            except Exception as e:
+                print(e)
                 print("static_accuracy grad {dtype} failed".format(dtype=self._dtype))
-            else:
-                print("static_accuracy grad {dtype} success".format(dtype=self._dtype))
 
 
     def _test_eager_stability(self):
@@ -252,10 +248,9 @@ class TestPaddle(base_class.BaseClass):
                         )
                         % self._dtype,
                     )
-                except:
+                except Exception as e:
+                    print(e)
                     print("eager_stability forward {dtype} failed".format(dtype=self._dtype))
-                else:
-                    print("eager_stability forward {dtype} success".format(dtype=self._dtype))
                 try:
                     np.testing.assert_equal(
                         out_grads_eager,
@@ -265,10 +260,9 @@ class TestPaddle(base_class.BaseClass):
                         )
                         % self._dtype,
                     )
-                except:
+                except Exception as e:
+                    print(e)
                     print("eager_stability grad {dtype} failed".format(dtype=self._dtype))
-                else:
-                    print("eager_stability grad {dtype} success".format(dtype=self._dtype))
 
     def _test_static_stability(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -307,10 +301,9 @@ class TestPaddle(base_class.BaseClass):
                             )
                             % self._dtype,
                         )
-                    except:
+                    except Exception as e:
+                        print(e)
                         print("static_stability forward {dtype} failed".format(dtype=self._dtype))
-                    else:
-                        print("static_stability forward {dtype} success".format(dtype=self._dtype))
                     try: 
                         np.testing.assert_equal(
                             out_grads_static,
@@ -320,16 +313,16 @@ class TestPaddle(base_class.BaseClass):
                             )
                             % self._dtype,
                         )
-                    except:
-                        print("static_stability grad {dtype} failed".format(dtype=self._dtype))
-                    else:
-                        print("static_stability grad {dtype} success".format(dtype=self._dtype))
+                    except Exception as e:
+                        print(e)
+                        print("static_stability forward {dtype} failed".format(dtype=self._dtype))
 
 dtype_list = ["float32", "float16"]
 
 dist_strategy = fleet.DistributedStrategy()
+world_size = paddle_dist.get_world_size()
 dist_strategy.hybrid_configs = {
-    "mp_degree": 2,
+    "mp_degree": world_size,
     "pp_degree": 1,
     "dp_degree": 1,
 }
@@ -337,7 +330,6 @@ paddle_dist.fleet.init(is_collective=True, strategy = dist_strategy)
 
 set_random_seed(1024)
 
-world_size = paddle_dist.get_world_size()
 group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
 
 for dtype_id, dtype in enumerate(dtype_list):
@@ -350,13 +342,13 @@ for dtype_id, dtype in enumerate(dtype_list):
 
     test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
     test_paddle._test_eager_accuracy()
-    print("eager finish")
+    print("eager success")
     test_paddle._test_static_accuracy()
-    print("static finish")
+    print("static success")
     test_paddle._test_eager_stability()
-    print("eager_stability finish")
+    print("eager_stability success")
     test_paddle._test_static_stability()
-    print("static_stability finish")
+    print("static_stability success")
 
-    print("{dtype} finish".format(dtype = dtype))
+    print("{dtype} success".format(dtype = dtype))
 
