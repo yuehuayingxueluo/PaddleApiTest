@@ -211,7 +211,6 @@ for case_id in range(case_num):
     for dtype_id, dtype in enumerate(dtype_list):
 
         np_input_dir = "./inputs_case{id_b}.npz".format(id_b=(case_id + 1))
-        dtype = dtype
         save_static_res_path = "./{id}_static_develop_res_case1_{dtype}_{rank}.npz".format(id=case_id+1, dtype=dtype, rank=rank)
         save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}_{rank}.npz".format(id=case_id+1, dtype=dtype, rank=rank)
         torch_dir = "./{id}_torch_out_{dtype}.npz".format(id=case_id+1, dtype=dtype)

@@ -96,7 +96,6 @@ for case_id in range(case_size):
     for dtype_id, dtype in enumerate(dtype_list):
 
         np_input_dir = "./inputs_case{id_b}.npz".format(id_b=(case_id + 1))
-        dtype = dtype
         torch_dir = "./{id}_torch_out_{dtype}.npz".format(id=case_id+1, dtype=dtype)
 
         test_torch = TestTorch('cuda', np_input_dir, dtype, torch_dir)
