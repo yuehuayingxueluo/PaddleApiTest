@@ -80,7 +80,6 @@ prepare_data.generate_np_inputs_and_dout()
 for dtype in dtype_list:
 
     np_input_dir = "./inputs_case1.npz"
-    dtype = dtype
     torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
 
     test_torch = TestTorch('cuda', np_input_dir, dtype, torch_dir)
