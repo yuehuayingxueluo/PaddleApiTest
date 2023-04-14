@@ -92,11 +92,13 @@ class TestPaddle(base_class.BaseClass):
             [out], [embedding.weight], grad_outputs=[dout_t]
         )
 
+        out_grads = out_grads[0]
+
         if self._dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
-            out_grads = paddle.cast(out_grads[0], dtype="float32")
+            out_grads = paddle.cast(out_grads, dtype="float32")
 
-        return out, out_grads[0]
+        return out, out_grads
 
     def _cal_static_res(self, x, table, dout):
         x_t = x
@@ -111,11 +113,14 @@ class TestPaddle(base_class.BaseClass):
 
         out_grads = paddle.static.gradients(
             [out], [embedding.weight], target_gradients=[dout_t]
-        )    
+        )
+
+        out_grads = out_grads[0]
 
         if self._dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
-            out_grads =  paddle.cast(out_grads[0], dtype="float32")
+            out_grads =  paddle.cast(out_grads, dtype="float32")
+
         return out, out_grads
 
     def _test_eager_accuracy(self):
@@ -183,7 +188,7 @@ class TestPaddle(base_class.BaseClass):
             out = exe.run(
                 mp,
                 feed={"x": self._np_x,  "table": self._np_paddle_table, "dout": self._np_dout},
-                fetch_list=[out_static] + out_grads_static,
+                fetch_list=[out_static] + [out_grads_static],
             )
             out_static, out_grads_static = out[0], out[1:]
             out_grads_static = out_grads_static[0]
@@ -280,7 +285,7 @@ class TestPaddle(base_class.BaseClass):
             out = exe.run(
                 mp,
                 feed={"x": self._np_x, "table": self._np_paddle_table, "dout": self._np_dout},
-                fetch_list=[out_static_pg] + out_grads_static_pg,
+                fetch_list=[out_static_pg] + [out_grads_static_pg],
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
@@ -288,7 +293,7 @@ class TestPaddle(base_class.BaseClass):
                 out = exe.run(
                     mp,
                     feed={"x": self._np_x, "table": self._np_paddle_table, "dout": self._np_dout},
-                    fetch_list=[out_static_pg] + out_grads_static_pg,
+                    fetch_list=[out_static_pg] + [out_grads_static_pg],
                 )
                 out_static, out_grads_static = out[0], out[1:]
 
@@ -317,7 +322,7 @@ class TestPaddle(base_class.BaseClass):
                         )
                     except Exception as e:
                         print(e)
-                        print("static_stability forward {dtype} failed".format(dtype=self._dtype))
+                        print("static_stability grad {dtype} failed".format(dtype=self._dtype))
 
 dtype_list = ["float32", "float16", "bfloat16"]
 
@@ -343,13 +348,13 @@ for dtype in dtype_list:
 
     test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
     test_paddle._test_eager_accuracy()
-    print("eager {dtype} success".format(dtype=dtype))
+    print("eager {dtype} finish".format(dtype=dtype))
     test_paddle._test_static_accuracy()
-    print("static {dtype} success".format(dtype=dtype))
+    print("static {dtype} finish".format(dtype=dtype))
     test_paddle._test_eager_stability()
-    print("eager_stability {dtype}  success".format(dtype=dtype))
+    print("eager_stability {dtype}  finish".format(dtype=dtype))
     test_paddle._test_static_stability()
-    print("static_stability {dtype}  success".format(dtype=dtype))
+    print("static_stability {dtype}  finish".format(dtype=dtype))
 
-    print("{dtype} success".format(dtype=dtype))
+    print("{dtype} finish".format(dtype=dtype))
 
