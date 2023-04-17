@@ -7,31 +7,6 @@ import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-def generate_np_inputs_and_dout():
-    B_value = 1
-    S_value = 40
-    H_value = 12
-
-    x_case1 = np.random.random(size=[S_value , H_value]).astype("float32")
-    #x_case1 = np.random.random(size=[B_value, S_value , H_value]).astype("float32")
-    weight_case1 = np.random.random(size=[H_value , H_value]).astype("float32")
-    dout_case1 = np.random.random(size=[S_value , H_value]).astype("float32")
-    bias_case1 = (np.ones( (S_value,1) ) * np.random.random(size=[1 , H_value])).astype("float32")
-
-    x_case2 = np.random.random(size=[S_value , H_value]).astype("float32")
-    weight_case2 = np.random.random(size=[H_value , 4 * H_value]).astype("float32")
-    dout_case2 = np.random.random(size=[S_value , 4 * H_value]).astype("float32")
-    bias_case2 = (np.ones( (S_value,1) ) * np.random.random(size=[1 , 4 * H_value])).astype("float32")
-
-    x_case3 = np.random.random(size=[S_value , 4 * H_value]).astype("float32")
-    weight_case3 = np.random.random(size=[4 * H_value ,  H_value]).astype("float32")
-    dout_case3 = np.random.random(size=[S_value , H_value]).astype("float32")
-    bias_case3 = (np.ones( (S_value,1) ) * np.random.random(size=[1 , H_value])).astype("float32")
-
-    np.savez("./inputs_case1.npz", x = x_case1, weight = weight_case1 , dout = dout_case1 , bias = bias_case1)
-    np.savez("./inputs_case2.npz", x = x_case2, weight = weight_case2 , dout = dout_case2 , bias = bias_case2)
-    np.savez("./inputs_case3.npz", x = x_case3, weight = weight_case3 , dout = dout_case3 , bias = bias_case3)
-
 class TestFCIncubateCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
@@ -55,9 +30,6 @@ class TestFCIncubateCase1_FP32(unittest.TestCase):
         self.np_weight = np_inputs_array["weight"]
         self.np_bias = np_inputs_array["bias"]
         self.np_dout = np_inputs_array["dout"]
-        #for i in range(3):
-            #self.output_size = 1
-            #self.output_size = self.np_dout.shape[i] * self.output_size
 
         self.output_size = self.np_dout.shape[-1]
         # convert np array dtype
@@ -272,7 +244,6 @@ class TestFCIncubateCase3_BFP16(TestFCIncubateCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
         
 if __name__ == '__main__':
-    #generate_np_inputs_and_dout()
     print("start run test_linear_incubate.py")
     unittest.main()
     print("finished run test_linear_incubate.py")
