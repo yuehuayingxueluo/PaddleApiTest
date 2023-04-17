@@ -8,10 +8,6 @@ import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-dim_1 = 56200
-dim_2 = 4096
-dim_3 = 12288
-
 def set_random_seed(seed):
     """Set random seed for reproducability."""
     random.seed(seed)
@@ -20,7 +16,7 @@ def set_random_seed(seed):
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
 class TestPaddle(init_config_class.InitConfigClass):
-    def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
+    def __init__(self, group, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path="", torch_dir=""):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
         self._init_np_inputs_and_dout()
@@ -85,7 +81,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
         
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(dim_1, dim_3, weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._np_paddle_table), mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._np_paddle_table), mp_group=self._group)
         out = embedding(x_t)
 
         out_grads = paddle.grad(
@@ -108,7 +104,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
 
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(dim_1, dim_3, weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._np_paddle_table), mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._np_paddle_table), mp_group=self._group)
         out = embedding(x_t)
 
         out_grads = paddle.static.gradients(
@@ -337,7 +333,7 @@ paddle_dist.fleet.init(is_collective=True, strategy = dist_strategy)
 
 set_random_seed(1024)
 
-group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
+group = paddle_dist.collective._get_default_group()
 
 for dtype in dtype_list:
 
