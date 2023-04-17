@@ -264,7 +264,13 @@ class TestFCIncubateCase3_FP32(TestFCIncubateCase1_FP32):
         self.dtype = "float16"
         self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
 
-
+class TestFCIncubateCase3_BFP16(TestFCIncubateCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
+        
 if __name__ == '__main__':
     #generate_np_inputs_and_dout()
     print("start run test_linear_incubate.py")
