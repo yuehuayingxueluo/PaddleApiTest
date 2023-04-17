@@ -16,11 +16,10 @@ def set_random_seed(seed):
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
 class TestPaddle(init_config_class.InitConfigClass):
-    def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
+    def __init__(self, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path="", torch_dir=""):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
         self._init_np_inputs_and_dout()
-        self._group = group
         world_size = paddle.distributed.get_world_size()
         rank = paddle.distributed.get_rank()
 
@@ -194,8 +193,6 @@ paddle_dist.fleet.init(is_collective=True, strategy = dist_strategy)
 
 set_random_seed(1024)
 
-group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
-
 case_num = 5
 rank = paddle_dist.get_rank()
 
@@ -207,7 +204,7 @@ for case_id in range(case_num):
         save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}_{rank}.npz".format(id=case_id+1, dtype=dtype, rank=rank)
         torch_dir = "./{id}_torch_out_{dtype}.npz".format(id=case_id+1, dtype=dtype)
 
-        test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
+        test_paddle = TestPaddle(np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
         print("case {id} {dtype} static start".format(id=case_id + 1, dtype=dtype))
         test_paddle._test_static_accuracy()
         print("case {id} {dtype} static finish".format(id=case_id + 1, dtype=dtype))

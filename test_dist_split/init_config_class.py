@@ -9,7 +9,7 @@ class InitConfigClass:
         self._init_threshold()
         self._init_np_inputs_and_dout()
 
-    def _init_params(self, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz"):
+    def _init_params(self, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path=""):
         self._np_input_dir = np_input_dir
         self._dtype = dtype
         self._save_static_res_path = save_static_res_path

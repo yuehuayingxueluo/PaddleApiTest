@@ -8,7 +8,7 @@ sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
 class TestTorch(init_config_class.InitConfigClass):
-    def __init__(self, device, np_input_dir="./inputs_case1.npz", dtype="float32", torch_dir="1_torch_out_float32.npz"):
+    def __init__(self, device, np_input_dir="", dtype="", torch_dir=""):
         self._init_params(np_input_dir, dtype)
         self._init_threshold()
         self._init_np_inputs_and_dout()
