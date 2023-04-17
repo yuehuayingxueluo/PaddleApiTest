@@ -156,7 +156,6 @@ class TestPaddle(init_config_class.InitConfigClass):
                 )
                 out_static, out_grads_static = out[0], out[1:]
 
-                # if paddle.distributed.get_rank() == 0:
                 try:
                     np.testing.assert_equal(
                         out_static,
