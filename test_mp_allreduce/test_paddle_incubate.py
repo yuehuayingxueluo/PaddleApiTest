@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-class TestPaddle(init_config_class.InitClass):
+class TestPaddle(init_config_class.InitConfigClass):
     def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()

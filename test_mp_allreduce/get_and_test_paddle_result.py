@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-class TestPaddle(init_config_class.InitClass):
+class TestPaddle(init_config_class.InitConfigClass):
     def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
@@ -198,7 +198,7 @@ class TestPaddle(init_config_class.InitClass):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(1):
+        for i in range(50):
             out_eager, out_grads_eager = self._cal_eager_res(x_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager.numpy()
@@ -248,7 +248,7 @@ class TestPaddle(init_config_class.InitClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(1):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self._np_x, "dout": self._np_dout},
