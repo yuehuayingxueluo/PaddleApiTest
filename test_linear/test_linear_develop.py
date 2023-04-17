@@ -452,6 +452,13 @@ class TestLinearDevelopCase2_BFP16(TestLinearDevelopCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
 
+class TestLinearDevelopCase3_BFP16(TestLinearDevelopCase1_FP32):
+    def init_params(self):
+        print("TestLinearDevelopCase3_BFP16")
+        self.np_input_dir = "./inputs_case3.npz"
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
 
 if __name__ == '__main__':
     generate_np_inputs_and_dout()
