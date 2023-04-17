@@ -3,7 +3,7 @@ import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-class BaseClass:
+class InitClass:
     def __init__(self):
         self._init_params()
         self._init_threshold()
