@@ -61,8 +61,6 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
     def init_threshold(self):
         self.atol = TOLERANCE[self.dtype]["atol"]
         self.rtol = TOLERANCE[self.dtype]["rtol"]
-        #self.atol = 0.01
-        #self.rtol = 0.01
 
     def init_np_inputs_and_dout(self):
         np_inputs_array = np.load(self.np_input_dir)
@@ -288,7 +286,6 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
 
         # save static res for test_linear_incubate
         np.savez(self.save_static_res_path, out_static=out_static, out_grads_static_0=out_grads_static[0], out_grads_static_1=out_grads_static[1] , out_grads_static_2=out_grads_static[2])
-        #np.savez(self.save_static_res_path, out_static=out_static, out_grads_static_0=out_grads_static[0], out_grads_static_1=out_grads_static[1])
 
         # compare static res with torch
         np.testing.assert_allclose(
