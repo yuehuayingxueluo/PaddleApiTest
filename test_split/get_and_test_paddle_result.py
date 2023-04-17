@@ -2,7 +2,7 @@ import numpy as np
 import paddle
 import paddle.distributed as paddle_dist
 import paddle.distributed.fleet as fleet
-import base_class
+import init_config_class
 import random
 import sys
 sys.path.append("..")
@@ -15,7 +15,7 @@ def set_random_seed(seed):
     paddle.seed(seed)
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
-class TestPaddle(base_class.BaseClass):
+class TestPaddle(init_config_class.InitConfigClass):
     def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
@@ -31,43 +31,11 @@ class TestPaddle(base_class.BaseClass):
             self._weight = np.array_split(self._np_weight, world_size, 0)[rank]
             self._bias = self._np_bias
             self._out_grads_torch  = np.array_split(np_inputs_array["torch_out_grad"][0], world_size, -1)[rank]
-            # out_grads_torch_tmp[1] = np.array_split(np_inputs_array["torch_out_grad"][1], world_size, 0)[rank]
-            # out_grads_torch_tmp[0] = np_inputs_array["torch_out_grad"][2]
         else:
             self._x = self._np_x
             self._weight = np.array_split(self._np_weight, world_size, 1)[rank]
             self._bias = np.array_split(self._np_bias, world_size, 0)[rank]
             self._out_grads_torch = np_inputs_array["torch_out_grad"][0]
-            # out_grads_torch_tmp[1] = np.array_split(np_inputs_array["torch_out_grad"][1], world_size, 1)[rank]
-            # out_grads_torch_tmp[0] = np.array_split(np_inputs_array["torch_out_grad"][2], world_size, 0)[rank]
-    
-    # def _gen_eager_inputs_and_dout(self):
-    #     place = paddle.device.get_device()
-    #     x_eager = paddle.to_tensor(
-    #         self._x,
-    #         dtype=self._dtype if self._dtype != 'bfloat16' else "float32",
-    #         place=place,
-    #     )
-    #     x_eager.stop_gradient = False
-    #     weight_eager = paddle.to_tensor(
-    #         self._weight,
-    #         dtype=self._dtype if self._dtype != 'bfloat16' else "float32",
-    #         place=place,
-    #     )
-    #     weight_eager.stop_gradient = False
-    #     bias_eager = paddle.to_tensor(
-    #         self._bias,
-    #         dtype=self._dtype if self._dtype != 'bfloat16' else "float32",
-    #         place=place,
-    #     )
-    #     bias_eager.stop_gradient = False
-    #     dout_eager = paddle.to_tensor(
-    #         self._np_dout,
-    #         dtype=self._dtype if self._dtype != 'bfloat16' else "float32",
-    #         place=place,
-    #     )
-    #     dout_eager.stop_gradient = False
-    #     return x_eager, weight_eager, bias_eager,dout_eager
 
     def _gen_static_inputs_and_dout(self):
         x_static = paddle.static.data(
@@ -76,18 +44,6 @@ class TestPaddle(base_class.BaseClass):
             dtype=self._dtype if self._dtype != "bfloat16" else "float32",
         )
         x_static.stop_gradient = False
-        # weight_static = paddle.static.data(
-        #     'weight',
-        #     shape=self._weight.shape,
-        #     dtype=self._dtype if self._dtype != "bfloat16" else "float32",
-        # )
-        # weight_static.stop_gradient = False
-        # bias_static = paddle.static.data(
-        #     'bias',
-        #     shape=self._bias.shape,
-        #     dtype=self._dtype if self._dtype != "bfloat16" else "float32",
-        # )
-        # bias_static.stop_gradient = False
         dout_static = paddle.static.data(
             'dout',
             shape=self._np_dout.shape,
@@ -95,37 +51,6 @@ class TestPaddle(base_class.BaseClass):
         )
         dout_static.stop_gradient = False
         return x_static, dout_static
-
-    # def _cal_eager_res(self, x, dout):
-    #     x_t = x
-    #     # weight_t = weight
-    #     # bias_t = bias
-    #     dout_t = dout
-    #     if self._dtype == "bfloat16":
-    #         x_t = paddle.cast(x, dtype="uint16")
-    #         # weight_t = paddle.cast(weight, dtype="uint16")
-    #         # bias_t = paddle.cast(bias, dtype="uint16")
-    #         dout_t = paddle.cast(dout, dtype="uint16")
-        
-    #     out = paddle.distributed.split(
-    #             x=x_t,
-    #             size=(self._np_weight.shape[0],
-    #             self._np_weight.shape[1]), 
-    #             operation="linear", 
-    #             axis=self._axis, num_partitions=2, 
-    #             weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._weight),
-    #             bias_attr=paddle.nn.initializer.NumpyArrayInitializer(self._bias),
-    #             mp_group=self._group)
-
-    #     out_grads = paddle.grad(
-    #         [out], [x_t], grad_outputs=[dout_t]
-    #     )
-
-    #     if self._dtype == "bfloat16":
-    #         out = paddle.cast(out, dtype="float32")
-    #         out_grads = paddle.cast(out_grads[0], dtype="float32")
-
-    #     return out, out_grads[0]
 
     def _cal_static_res(self, x, dout):
         x_t = x
@@ -229,7 +154,7 @@ class TestPaddle(base_class.BaseClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(1):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self._x, "dout": self._np_dout},

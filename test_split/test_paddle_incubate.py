@@ -2,7 +2,7 @@ import numpy as np
 import paddle
 import paddle.distributed as paddle_dist
 import paddle.distributed.fleet as fleet
-import base_class
+import init_config_class
 import random
 import sys
 sys.path.append("..")
@@ -15,7 +15,7 @@ def set_random_seed(seed):
     paddle.seed(seed)
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
-class TestPaddle(base_class.BaseClass):
+class TestPaddle(init_config_class.InitConfigClass):
     def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
@@ -148,7 +148,7 @@ class TestPaddle(base_class.BaseClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(5):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self._x, "dout": self._np_dout},

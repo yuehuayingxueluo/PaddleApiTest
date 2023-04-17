@@ -1,13 +1,13 @@
 import numpy as np
 import torch
 import torch.distributed as torch_dist
-import base_class
+import init_config_class
 import prepare_data
 import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-class TestTorch(base_class.BaseClass):
+class TestTorch(init_config_class.InitConfigClass):
     def __init__(self, device, np_input_dir="./inputs_case1.npz", dtype="float32", torch_dir="1_torch_out_float32.npz"):
         self._init_params(np_input_dir, dtype)
         self._init_threshold()
