@@ -317,8 +317,7 @@ class TestPaddle(init_config_class.InitConfigClass):
                         print(e)
                         print("static_stability forward {dtype} failed".format(dtype=self.dtype))
 
-# dtype_list = ["float32", "float16", "bfloat16"]
-dtype_list = ["float32", "float16"]
+dtype_list = ["float32", "float16", "bfloat16"]
 
 dist_strategy = fleet.DistributedStrategy()
 world_size = paddle_dist.get_world_size()
