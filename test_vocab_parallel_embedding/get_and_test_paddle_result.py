@@ -81,7 +81,8 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
         
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._np_paddle_table), mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, mp_group=self._group)
+        paddle.assign(table_t, embedding.weight)
         out = embedding(x_t)
 
         out_grads = paddle.grad(
@@ -104,7 +105,8 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
 
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, weight_attr=paddle.nn.initializer.NumpyArrayInitializer(self._np_paddle_table), mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, mp_group=self._group)
+        paddle.assign(table_t, embedding.weight)
         out = embedding(x_t)
 
         out_grads = paddle.static.gradients(
