@@ -13,20 +13,32 @@ def generate_np_inputs_and_dout():
     H_value = 12288
 
     x_case1 = np.random.random(size=[S_value , H_value]).astype("float32")
+    x_case1 = (x_case1 - 0.5).astype("float32")
     #x_case1 = np.random.random(size=[B_value, S_value , H_value]).astype("float32")
     weight_case1 = np.random.random(size=[H_value , H_value]).astype("float32")
+    weight_case1 = (weight_case1-0.5).astype("float32")
     dout_case1 = np.random.random(size=[S_value , H_value]).astype("float32")
+    dout_case1 = (dout_case1-0.5).astype("float32")
     bias_case1 = (np.ones( (S_value,1) ) * np.random.random(size=[1 , H_value])).astype("float32")
+    bias_case1 = (bias_case1-0.5).astype("float32")
 
     x_case2 = np.random.random(size=[S_value , H_value]).astype("float32")
+    x_case2 = (x_case2 - 0.5).astype("float32")
     weight_case2 = np.random.random(size=[H_value , 4 * H_value]).astype("float32")
+    weight_case2 = (weight_case2-0.5).astype("float32")
     dout_case2 = np.random.random(size=[S_value , 4 * H_value]).astype("float32")
+    dout_case2 = (dout_case2-0.5).astype("float32")
     bias_case2 = (np.ones( (S_value,1) ) * np.random.random(size=[1 , 4 * H_value])).astype("float32")
+    bias_case2 = (bias_case2-0.5).astype("float32")
 
     x_case3 = np.random.random(size=[S_value , 4 * H_value]).astype("float32")
+    x_case3 = (x_case3 - 0.5).astype("float32")
     weight_case3 = np.random.random(size=[4 * H_value ,  H_value]).astype("float32")
+    weight_case3 = (weight_case3-0.5).astype("float32")
     dout_case3 = np.random.random(size=[S_value , H_value]).astype("float32")
+    dout_case3 = (dout_case3-0.5).astype("float32")
     bias_case3 = (np.ones( (S_value,1) ) * np.random.random(size=[1 , H_value])).astype("float32")
+    bias_case3 = (bias_case3-0.5).astype("float32")
 
     np.savez("./inputs_case1.npz", x = x_case1, weight = weight_case1 , dout = dout_case1 , bias = bias_case1)
     np.savez("./inputs_case2.npz", x = x_case2, weight = weight_case2 , dout = dout_case2 , bias = bias_case2)
