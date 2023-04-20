@@ -9,15 +9,15 @@ from utils import TOLERANCE, convert_dtype_to_torch_type
 
 
 def generate_np_inputs_and_dout():
-    x_case1 = np.random.random(size=[1, 4096, 4096]).astype("float32")
+    x_case1 = np.random.random(size=[1, 4096, 4096]).astype("float32") - 0.5
     scale_case1 = 10000.0
     bias_case1 = -1.0
-    dout_case1 = np.random.random(size=[1, 4096, 4096]).astype("float32")
+    dout_case1 = np.random.random(size=[1, 4096, 4096]).astype("float32") - 0.5
 
-    x_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    x_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32") - 0.5
     scale_case2 = 0.07216878364870322
     bias_case2 = 0.0
-    dout_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
+    dout_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32") - 0.5
 
     np.savez("./inputs_case1.npz", x=x_case1, scale=scale_case1, bias=bias_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x=x_case2, scale=scale_case2, bias=bias_case2, dout = dout_case2)
