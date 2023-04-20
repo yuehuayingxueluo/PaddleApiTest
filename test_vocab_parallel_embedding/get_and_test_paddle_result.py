@@ -154,6 +154,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                 )
             except Exception as e:
                 print(e)
+                idx = np.argmax(np.abs(self._out_torch - out_eager_np))
+                print("paddle ele: {}".format(out_eager_np.flatten()[idx].item()))
+                print("torch ele: {}".format(self._out_torch.flatten()[idx].item()))
                 print("eager_accuracy forward {dtype} failed".format(dtype=self._dtype))
             
             try:
@@ -169,6 +172,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                 )
             except Exception as e:
                 print(e)
+                idx = np.argmax(np.abs(self._out_grads_torch - out_grads_eager_np))
+                print("paddle ele: {}".format(out_grads_eager_np.flatten()[idx].item()))
+                print("torch ele: {}".format(self._out_grads_torch.flatten()[idx].item()))
                 print("eager_accuracy grad {dtype} failed".format(dtype=self._dtype))
         
     def _test_static_accuracy(self):
@@ -209,6 +215,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                 )
             except Exception as e:
                 print(e)
+                idx = np.argmax(np.abs(self._out_torch - out_static))
+                print("paddle ele: {}".format(out_static.flatten()[idx].item()))
+                print("torch ele: {}".format(self._out_torch.flatten()[idx].item()))
                 print("static_accuracy forward {dtype} failed".format(dtype=self._dtype))
 
             try:
@@ -224,6 +233,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                 )
             except Exception as e:
                 print(e)
+                idx = np.argmax(np.abs(self._out_grads_torch - out_grads_static))
+                print("paddle ele: {}".format(out_grads_static.flatten()[idx].item()))
+                print("torch ele: {}".format(self._out_grads_torch.flatten()[idx].item()))
                 print("static_accuracy grad {dtype} failed".format(dtype=self._dtype))
 
 
@@ -253,6 +265,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                     )
                 except Exception as e:
                     print(e)
+                    idx = np.argmax(np.abs(out_eager_baseline_np - out_eager))
+                    print("paddle ele: {}".format(out_eager.flatten()[idx].item()))
+                    print("base paddle ele: {}".format(out_eager_baseline_np.flatten()[idx].item()))
                     print("eager_stability forward {dtype} failed".format(dtype=self._dtype))
                 
                 try:
@@ -266,6 +281,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                     )
                 except Exception as e:
                     print(e)
+                    idx = np.argmax(np.abs(out_grads_eager_baseline_np - out_grads_eager))
+                    print("paddle ele: {}".format(out_grads_eager.flatten()[idx].item()))
+                    print("base paddle ele: {}".format(out_grads_eager_baseline_np.flatten()[idx].item()))
                     print("eager_stability grad {dtype} failed".format(dtype=self._dtype))
 
     def _test_static_stability(self):
@@ -307,6 +325,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                         )
                     except Exception as e:
                         print(e)
+                        idx = np.argmax(np.abs(out_static_baseline - out_static))
+                        print("paddle ele: {}".format(out_static.flatten()[idx].item()))
+                        print("base paddle ele: {}".format(out_static_baseline.flatten()[idx].item()))
                         print("static_stability forward {dtype} failed".format(dtype=self._dtype))
                         
                     try: 
@@ -320,6 +341,9 @@ class TestPaddle(init_config_class.InitConfigClass):
                         )
                     except Exception as e:
                         print(e)
+                        idx = np.argmax(np.abs(out_grads_static_baseline - out_grads_static))
+                        print("paddle ele: {}".format(out_grads_static.flatten()[idx].item()))
+                        print("base paddle  ele: {}".format(out_grads_static_baseline.flatten()[idx].item()))
                         print("static_stability grad {dtype} failed".format(dtype=self._dtype))
 
 dtype_list = ["float32", "float16", "bfloat16"]
