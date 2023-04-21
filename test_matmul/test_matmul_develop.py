@@ -375,8 +375,8 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                     out_static_baseline,
                     err_msg=(
                         'Develop: paddle.matmul static forward is unstable in %s dtype\n'
-                        'max_atol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
-                        'max_rtol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
+                        'max_atol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
                     )
                     % (self.dtype, max_atol_idx, out_static.flatten()[max_atol_idx].item(), out_static_baseline.flatten()[max_atol_idx].item(),
                         max_rtol_idx, out_static.flatten()[max_rtol_idx].item(), out_static_baseline.flatten()[max_rtol_idx].item()),
