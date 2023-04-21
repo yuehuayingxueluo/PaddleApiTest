@@ -25,8 +25,8 @@ sys.path.append("..")
 from utils import (
     TOLERANCE,
     convert_dtype_to_torch_type,
-    np_assert_accuracy_log,
-    np_assert_staility_log,
+    np_assert_accuracy,
+    np_assert_staility,
 )
 
 
@@ -233,7 +233,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             out_grads_eager_1=out_grads_eager_np[1],
         )
         # compare develop eager forward res with torch
-        np_assert_accuracy_log(
+        np_assert_accuracy(
             out_eager_np,
             self.out_torch,
             self.atol,
@@ -247,7 +247,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         )
         # compare develop eager backward res with torch
         for idx in range(len(out_grads_eager_np)):
-            np_assert_accuracy_log(
+            np_assert_accuracy(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
@@ -293,7 +293,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             out_grads_static_1=out_grads_static[1],
         )
         # compare develop static forward res with torch
-        np_assert_accuracy_log(
+        np_assert_accuracy(
             out_static,
             self.out_torch,
             self.atol,
@@ -307,7 +307,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         )
         # compare develop static backward res with torch
         for idx in range(len(out_grads_static)):
-            np_assert_accuracy_log(
+            np_assert_accuracy(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
                 self.atol,
@@ -344,7 +344,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 out_grads_eager,
             )
             # test develop eager forward stability
-            np_assert_staility_log(
+            np_assert_staility(
                 out_eager,
                 out_eager_baseline_np,
                 self.atol,
@@ -357,7 +357,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             )
             # test develop eager backward stability
             for idx in range(len(out_grads_eager)):
-                np_assert_staility_log(
+                np_assert_staility(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     self.atol,
@@ -401,7 +401,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 )
                 out_static, out_grads_static = out[0], out[1:]
                 # test develop static forward stability
-                np_assert_staility_log(
+                np_assert_staility(
                     out_static,
                     out_static_baseline,
                     self.atol,
@@ -414,7 +414,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 )
                 # test develop static backward stability
                 for idx in range(len(out_grads_static)):
-                    np_assert_staility_log(
+                    np_assert_staility(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         self.atol,

@@ -32,7 +32,7 @@ def convert_dtype_to_torch_type(dtype):
         return torch.bfloat16
 
 
-def np_assert_accuracy_log(
+def np_assert_accuracy(
     np_a,
     np_b,
     atol,
@@ -78,7 +78,7 @@ def np_assert_accuracy_log(
     )
 
 
-def np_assert_staility_log(
+def np_assert_staility(
     np_actual,
     np_baseline,
     atol,
