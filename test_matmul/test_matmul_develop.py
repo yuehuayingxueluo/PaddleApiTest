@@ -347,8 +347,6 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             np_assert_staility(
                 out_eager,
                 out_eager_baseline_np,
-                self.atol,
-                self.rtol,
                 self.dtype,
                 version="paddle_develop",
                 eager_or_static_mode="eager",
@@ -360,8 +358,6 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 np_assert_staility(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
-                    self.atol,
-                    self.rtol,
                     self.dtype,
                     version="paddle_develop",
                     eager_or_static_mode="eager",
@@ -404,8 +400,6 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 np_assert_staility(
                     out_static,
                     out_static_baseline,
-                    self.atol,
-                    self.rtol,
                     self.dtype,
                     version="paddle_develop",
                     eager_or_static_mode="static",
@@ -417,8 +411,6 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                     np_assert_staility(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
-                        self.atol,
-                        self.rtol,
                         self.dtype,
                         version="paddle_develop",
                         eager_or_static_mode="static",

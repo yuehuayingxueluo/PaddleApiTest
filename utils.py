@@ -81,8 +81,6 @@ def np_assert_accuracy(
 def np_assert_staility(
     np_actual,
     np_baseline,
-    atol,
-    rtol,
     dtype,
     version,
     eager_or_static_mode,
@@ -91,11 +89,9 @@ def np_assert_staility(
 ):
     max_atol_idx = np.argmax(np.abs(np_actual - np_baseline))
     max_rtol_idx = np.argmax(np.abs((np_actual - np_baseline) / np_actual))
-    np.testing.assert_allclose(
+    np.testing.assert_equal(
         np_actual,
         np_baseline,
-        atol,
-        rtol,
         err_msg=(
             '{eager_or_static_mode} {fwd_or_bkd}: {version} is unstable in {dtype} dtype,\n'.format(
                 eager_or_static_mode=eager_or_static_mode,
