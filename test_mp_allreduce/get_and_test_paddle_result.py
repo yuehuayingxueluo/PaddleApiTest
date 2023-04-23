@@ -4,7 +4,12 @@ import paddle.distributed as paddle_dist
 import init_config_class
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 class TestPaddle(init_config_class.InitConfigClass):
     def __init__(self, group, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path="", torch_dir=""):
@@ -50,16 +55,17 @@ class TestPaddle(init_config_class.InitConfigClass):
         return x_static, dout_static
 
     def _cal_eager_res(self, x, dout):
+        x_t = x
         dout_t = dout
         if self._dtype == "bfloat16":
-            x = paddle.cast(x, dtype="uint16")
+            x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
         
-        x = x.scale(1.0)
-        out = paddle_dist.collective._mp_allreduce(x, group=self._group)
+        x_t = x_t.scale(1.0)
+        out = paddle_dist.collective._mp_allreduce(x_t, group=self._group)
 
         out_grads = paddle.grad(
-            [out], [x], grad_outputs=[dout_t]
+            [out], [x_t], grad_outputs=[dout_t]
         )
 
         out_grads = out_grads[0]     
@@ -76,9 +82,9 @@ class TestPaddle(init_config_class.InitConfigClass):
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
 
-        out = paddle_dist.collective._mp_allreduce(x, group=self._group)
+        out = paddle_dist.collective._mp_allreduce(x_t, group=self._group)
         out_grads = paddle.static.gradients(
-            [out], [x], target_gradients=[dout_t]
+            [out], [x_t], target_gradients=[dout_t]
         )
 
         out_grads = out_grads[0]
@@ -108,33 +114,37 @@ class TestPaddle(init_config_class.InitConfigClass):
 
             # compare eager res with torch
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_eager_np,
                     self._out_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare mp_allreduce eager forward res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="forward",
+                    api="paddle.distributed.collective._mp_allreduce",
                 )
             except Exception as e:
                 print(e)
                 print("eager_accuracy forward {dtype} failed".format(dtype=self._dtype))
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_grads_eager_np,
                     self._out_grads_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare mp_allreduce eager grad res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="paddle.distributed.collective._mp_allreduce",
                 )
             except Exception as e:
                 print(e)
-                print("eager_accuracy grad {dtype} failed".format(dtype=self._dtype))
+                print("eager_accuracy backward {dtype} failed".format(dtype=self._dtype))
         
     def _test_static_accuracy(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -160,34 +170,38 @@ class TestPaddle(init_config_class.InitConfigClass):
 
             # compare static res with torch
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_static,
                     self._out_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare mp_allreduce static forward res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="paddle.distributed.collective._mp_allreduce",
                 )
             except Exception as e:
                 print(e)
                 print("static_accuracy forward {dtype} failed".format(dtype=self._dtype))
 
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_grads_static[0],
                     self._out_grads_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare mp_allreduce static grad res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="backward",
+                    api="paddle.distributed.collective._mp_allreduce",
                 )
             except Exception as e:
                 print(e)
-                print("static_accuracy grad {dtype} failed".format(dtype=self._dtype))
+                print("static_accuracy backward {dtype} failed".format(dtype=self._dtype))
 
     def _test_eager_stability(self):
         x_eager, dout_eager = self._gen_eager_inputs_and_dout()
@@ -204,31 +218,33 @@ class TestPaddle(init_config_class.InitConfigClass):
             out_grads_eager = out_grads_eager.numpy()
 
             if paddle.distributed.get_rank() == 0:
-                try: 
-                    np.testing.assert_equal(
+                try:
+                    np_assert_staility(
                         out_eager,
                         out_eager_baseline_np,
-                        err_msg=(
-                            'Develop: mp_allreduce eager forward is unstable in %s dtype'
-                        )
-                        % self._dtype,
+                        self._dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="eager",
+                        fwd_or_bkd="forward",
+                        api="paddle.distributed.collective._mp_allreduce",
                     )
                 except Exception as e:
                     print(e)
                     print("eager_stability forward {dtype} failed".format(dtype=self._dtype))
                 
                 try:
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_grads_eager,
                         out_grads_eager_baseline_np,
-                        err_msg=(
-                            'Develop: mp_allreduce eager grad is unstable in %s dtype'
-                        )
-                        % self._dtype,
+                        self._dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="eager",
+                        fwd_or_bkd="backward",
+                        api="paddle.distributed.collective._mp_allreduce",
                     )
                 except Exception as e:
                     print(e)
-                    print("eager_stability grad {dtype} failed".format(dtype=self._dtype))
+                    print("eager_stability backward {dtype} failed".format(dtype=self._dtype))
 
     def _test_static_stability(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -258,30 +274,32 @@ class TestPaddle(init_config_class.InitConfigClass):
 
                 if paddle.distributed.get_rank() == 0:
                     try:
-                        np.testing.assert_equal(
+                        np_assert_staility(
                             out_static,
                             out_static_baseline,
-                            err_msg=(
-                                'Develop: mp_allreduce static forward is unstable in %s dtype'
-                            )
-                            % self._dtype,
+                            self._dtype,
+                            version="paddle_develop",
+                            eager_or_static_mode="static",
+                            fwd_or_bkd="forward",
+                            api="paddle.distributed.collective._mp_allreduce",
                         )
                     except Exception as e:
                         print(e)
                         print("static_stability forward {dtype} failed".format(dtype=self._dtype))
                         
-                    try: 
-                        np.testing.assert_equal(
+                    try:
+                        np_assert_staility(
                             out_grads_static[0],
                             out_grads_static_baseline[0],
-                            err_msg=(
-                                'Develop: mp_allreduce static grad is unstable in %s dtype'
-                            )
-                            % self._dtype,
+                            self._dtype,
+                            version="paddle_develop",
+                            eager_or_static_mode="static",
+                            fwd_or_bkd="backward",
+                            api="paddle.distributed.collective._mp_allreduce",
                         )
                     except Exception as e:
                         print(e)
-                        print("static_stability forward {dtype} failed".format(dtype=self._dtype))
+                        print("static_stability backward {dtype} failed".format(dtype=self._dtype))
 
 dtype_list = ["float32", "float16", "bfloat16"]
 
