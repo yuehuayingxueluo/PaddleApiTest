@@ -12,6 +12,9 @@ def generate_np_inputs_and_dout():
     S_value = 4096
     H_value = 12288
 
+    B_value = 1
+    S_value = 40
+    H_value = 12
     x_case1 = np.random.random(size=[S_value , H_value]).astype("float32")
     x_case1 = (x_case1 - 0.5).astype("float32")
     #x_case1 = np.random.random(size=[B_value, S_value , H_value]).astype("float32")
@@ -250,6 +253,8 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
         paddle.device.cuda.empty_cache()
         # save eager res for test_linear_incubate
         np.savez(self.save_eager_res_path, out_eager=out_eager_np, out_grads_eager_0=out_grads_eager_np[0], out_grads_eager_1=out_grads_eager_np[1] , out_grads_eager_2=out_grads_eager_np[2])
+        max_atol_idx = np.argmax(np.abs(out_eager_np-self.out_torch))
+        max_rtol_idx = np.argmax(np.abs((out_eager_np-self.out_torch)/out_eager_np))
 
         # compare eager res with torch
         np.testing.assert_allclose(
@@ -259,19 +264,27 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
             self.rtol,
             err_msg=(
                 'Develop: compare linear eager forward res with torch failed in %s dtype'
+                'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
+                'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
             )
-            % self.dtype,
+            % (self.dtype, max_atol_idx, out_eager_np.flatten()[max_atol_idx].item(), self.out_torch.flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_eager_np.flatten()[max_rtol_idx].item(), self.out_torch.flatten()[max_rtol_idx].item()),
         )
         for idx in range(len(out_grads_eager_np)):
+            max_atol_idx = np.argmax(np.abs(out_grads_eager_np[idx]-self.out_grads_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_grads_eager_np[idx]-self.out_grads_torch[idx])/out_grads_eager_np[idx]))
             np.testing.assert_allclose(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare linear eager grad res with torch failed in %s dtype'
+                    'Develop: compare linear eager grad res with torch failed in %s dtype,\n'
+                    'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_grads_eager_np[idx].flatten()[max_atol_idx].item(), self.out_grads_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_grads_eager_np[idx].flatten()[max_rtol_idx].item(), self.out_grads_torch[idx].flatten()[max_rtol_idx].item()),
             )
 
     def test_static_accuracy(self):
@@ -298,7 +311,8 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
 
         # save static res for test_linear_incubate
         np.savez(self.save_static_res_path, out_static=out_static, out_grads_static_0=out_grads_static[0], out_grads_static_1=out_grads_static[1] , out_grads_static_2=out_grads_static[2])
-
+        max_atol_idx = np.argmax(np.abs(out_static-self.out_torch))
+        max_rtol_idx = np.argmax(np.abs((out_static-self.out_torch)/out_static))
         # compare static res with torch
         np.testing.assert_allclose(
             out_static,
@@ -307,10 +321,15 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
             self.rtol,
             err_msg=(
                 'Develop: compare linear static forward res with torch failed in %s dtype'
+                'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
+                'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
             )
-            % self.dtype,
+            % (self.dtype, max_atol_idx, out_static.flatten()[max_atol_idx].item(), self.out_torch.flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_static.flatten()[max_rtol_idx].item(), self.out_torch.flatten()[max_rtol_idx].item()),
         )
         for idx in range(len(out_grads_static)):
+            max_atol_idx = np.argmax(np.abs(out_grads_static[idx]-self.out_grads_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_grads_static[idx]-self.out_grads_torch[idx])/out_grads_static[idx]))
             np.testing.assert_allclose(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
@@ -318,8 +337,11 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                 self.rtol,
                 err_msg=(
                     'Develop: compare linear static grad res with torch failed in %s dtype'
+                    'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_grads_static[idx].flatten()[max_atol_idx].item(), self.out_grads_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_grads_static[idx].flatten()[max_rtol_idx].item(), self.out_grads_torch[idx].flatten()[max_rtol_idx].item()),
             )
 
     def test_eager_stability(self):
@@ -341,22 +363,32 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                                     lambda x: x.numpy(),
                                     out_grads_eager,
                                 )
+            max_atol_idx = np.argmax(np.abs(out_eager-out_eager_baseline_np))
+            max_rtol_idx = np.argmax(np.abs((out_eager-out_eager_baseline_np)/out_eager))
             np.testing.assert_equal(
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
                     'Develop: paddle.linear eager forward is unstable in %s dtype'
+                    'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
+                    'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_eager.flatten()[max_atol_idx].item(), out_eager_baseline_np.flatten()[max_atol_idx].item(),
+                    max_rtol_idx, out_eager.flatten()[max_rtol_idx].item(), out_eager_baseline_np.flatten()[max_rtol_idx].item()),
             )
             for idx in range(len(out_grads_eager)):
+                max_atol_idx = np.argmax(np.abs(out_grads_eager[idx]-out_grads_eager_baseline_np[idx]))
+                max_rtol_idx = np.argmax(np.abs((out_grads_eager[idx]-out_grads_eager_baseline_np[idx])/out_grads_eager[idx]))
                 np.testing.assert_equal(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
                         'Develop: paddle.linear eager grad is unstable in %s dtype'
+                        'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                     )
-                    % self.dtype,
+                    % (self.dtype, max_atol_idx, out_grads_eager[idx].flatten()[max_atol_idx].item(), out_grads_eager_baseline_np[idx].flatten()[max_atol_idx].item(),
+                    max_rtol_idx, out_grads_eager[idx].flatten()[max_rtol_idx].item(), out_grads_eager_baseline_np[idx].flatten()[max_rtol_idx].item()),
                 )
 
     def test_static_stability(self):
@@ -387,22 +419,32 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
+                max_atol_idx = np.argmax(np.abs(out_static-out_static_baseline))
+                max_rtol_idx = np.argmax(np.abs((out_static-out_static_baseline)/out_static))
                 np.testing.assert_equal(
                     out_static,
                     out_static_baseline,
                     err_msg=(
                         'Develop: paddle.linear static forward is unstable in %s dtype'
+                        'max_atol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
                     )
-                    % self.dtype,
+                    % (self.dtype, max_atol_idx, out_static.flatten()[max_atol_idx].item(), out_static_baseline.flatten()[max_atol_idx].item(),
+                        max_rtol_idx, out_static.flatten()[max_rtol_idx].item(), out_static_baseline.flatten()[max_rtol_idx].item()),
                 )
                 for idx in range(len(out_grads_static)):
+                    max_atol_idx = np.argmax(np.abs(out_grads_static[idx]-out_grads_static_baseline[idx]))
+                    max_rtol_idx = np.argmax(np.abs((out_grads_static[idx]-out_grads_static_baseline[idx])/out_grads_static[idx]))
                     np.testing.assert_equal(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
                             'Develop: paddle.linear static grad is unstable in %s dtype'
+                            'max_atol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
+                            'max_rtol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
                         )
-                        % self.dtype,
+                        % (self.dtype, max_atol_idx, out_grads_static[idx].flatten()[max_atol_idx].item(), out_grads_static_baseline[idx].flatten()[max_atol_idx].item(),
+                        max_rtol_idx, out_grads_static[idx].flatten()[max_rtol_idx].item(), out_grads_static_baseline[idx].flatten()[max_rtol_idx].item()),
                     )
 
 class TestLinearDevelopCase1_FP16(TestLinearDevelopCase1_FP32):
