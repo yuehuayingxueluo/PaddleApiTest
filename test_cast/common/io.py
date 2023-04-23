@@ -24,4 +24,4 @@ class Result(object):
       return np.testing.assert_equal(self.data, other.data)
     else:
       logging.info("-- assert_allclose=self:{}, other:{}".format(self.data, other.data))
-      return np.testing.assert_allclose(self.data, other.data, rtol=1e-5)
+      return np.testing.assert_allclose(self.data, other.data, rtol=1e-6)
