@@ -8,11 +8,11 @@ sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
 def generate_np_inputs_and_dout():
-    x_case1 = np.random.random(size=[1, 12288]).astype("float32")
-    dout_case1 = np.random.random(size=[1, 12288]).astype("float32")
+    x_case1 = np.random.random(size=[1, 12288]).astype("float32")-0.5
+    dout_case1 = np.random.random(size=[1, 12288]).astype("float32")-0.5
 
-    x_case2 = np.random.random(size=[1,  4096, 24576]).astype("float32")
-    dout_case2 = np.random.random(size=[1,  4096, 24576]).astype("float32")
+    x_case2 = np.random.random(size=[1,  4096, 24576]).astype("float32")-0.5
+    dout_case2 = np.random.random(size=[1,  4096, 24576]).astype("float32")-0.5
 
     np.savez("./inputs_case1.npz", x = x_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x = x_case2, dout = dout_case2)
@@ -161,6 +161,8 @@ class TestGeluDevelopCase1_FP32(unittest.TestCase):
         # save eager res for test_gelu_incubate
 
         np.savez(self.save_eager_res_path, out_eager=out_eager_np, out_grads_eager_0=out_grads_eager_np[0])
+        max_atol_idx = np.argmax(np.abs(out_eager_np-self.out_torch))
+        max_rtol_idx = np.argmax(np.abs((out_eager_np-self.out_torch)/out_eager_np))
 
         # compare eager res with torch
         np.testing.assert_allclose(
@@ -169,20 +171,28 @@ class TestGeluDevelopCase1_FP32(unittest.TestCase):
             self.atol,
             self.rtol,
             err_msg=(
-                'Develop: compare gelu eager forward res with torch failed in %s dtype'
+                'Develop: compare gelu eager forward res with torch failed in %s dtype,\n'
+                'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
+                'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
             )
-            % self.dtype,
+            % (self.dtype, max_atol_idx, out_eager_np.flatten()[max_atol_idx].item(), self.out_torch.flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_eager_np.flatten()[max_rtol_idx].item(), self.out_torch.flatten()[max_rtol_idx].item()),
         )
         for idx in range(len(out_grads_eager_np)):
+            max_atol_idx = np.argmax(np.abs(out_grads_eager_np[idx]-self.out_grads_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_grads_eager_np[idx]-self.out_grads_torch[idx])/out_grads_eager_np[idx]))
             np.testing.assert_allclose(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare gelu eager grad res with torch failed in %s dtype'
+                    'Develop: compare gelu eager grad res with torch failed in %s dtype,\n'
+                    'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+            % (self.dtype, max_atol_idx, out_grads_eager_np[idx].flatten()[max_atol_idx].item(), self.out_grads_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_grads_eager_np[idx].flatten()[max_rtol_idx].item(), self.out_grads_torch[idx].flatten()[max_rtol_idx].item()),
             )
 
     def test_static_accuracy(self):
@@ -208,6 +218,9 @@ class TestGeluDevelopCase1_FP32(unittest.TestCase):
         # save static res for test_gelu_incubate
         np.savez(self.save_static_res_path, out_static=out_static, out_grads_static_0=out_grads_static[0])
 
+        max_atol_idx = np.argmax(np.abs(out_static-self.out_torch))
+        max_rtol_idx = np.argmax(np.abs((out_static-self.out_torch)/out_static))
+
         # compare static res with torch
         np.testing.assert_allclose(
             out_static,
@@ -215,20 +228,28 @@ class TestGeluDevelopCase1_FP32(unittest.TestCase):
             self.atol,
             self.rtol,
             err_msg=(
-                'Develop: compare gelu static forward res with torch failed in %s dtype'
+                'Develop: compare gelu static forward res with torch failed in %s dtype\n'
+                'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
+                'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
             )
-            % self.dtype,
+            % (self.dtype, max_atol_idx, out_static.flatten()[max_atol_idx].item(), self.out_torch.flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_static.flatten()[max_rtol_idx].item(), self.out_torch.flatten()[max_rtol_idx].item()),
         )
         for idx in range(len(out_grads_static)):
+            max_atol_idx = np.argmax(np.abs(out_grads_static[idx]-self.out_grads_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_grads_static[idx]-self.out_grads_torch[idx])/out_grads_static[idx]))
             np.testing.assert_allclose(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare gelu static grad res with torch failed in %s dtype'
+                    'Develop: compare gelu static grad res with torch failed in %s dtype\n'
+                    'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+            % (self.dtype, max_atol_idx, out_grads_static[idx].flatten()[max_atol_idx].item(), self.out_grads_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_grads_static[idx].flatten()[max_rtol_idx].item(), self.out_grads_torch[idx].flatten()[max_rtol_idx].item()),
             )
 
     def test_eager_stability(self):
@@ -250,22 +271,32 @@ class TestGeluDevelopCase1_FP32(unittest.TestCase):
                                     lambda x: x.numpy(),
                                     out_grads_eager,
                                 )
+            max_atol_idx = np.argmax(np.abs(out_eager-out_eager_baseline_np))
+            max_rtol_idx = np.argmax(np.abs((out_eager-out_eager_baseline_np)/out_eager))
             np.testing.assert_equal(
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
-                    'Develop: paddle.gelu eager forward is unstable in %s dtype'
+                    'Develop: paddle.gelu eager forward is unstable in %s dtype\n'
+                    'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
+                    'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_eager.flatten()[max_atol_idx].item(), out_eager_baseline_np.flatten()[max_atol_idx].item(),
+                    max_rtol_idx, out_eager.flatten()[max_rtol_idx].item(), out_eager_baseline_np.flatten()[max_rtol_idx].item()),
             )
             for idx in range(len(out_grads_eager)):
+                max_atol_idx = np.argmax(np.abs(out_grads_eager[idx]-out_grads_eager_baseline_np[idx]))
+                max_rtol_idx = np.argmax(np.abs((out_grads_eager[idx]-out_grads_eager_baseline_np[idx])/out_grads_eager[idx]))
                 np.testing.assert_equal(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.gelu eager grad is unstable in %s dtype'
+                        'Develop: paddle.gelu eager grad is unstable in %s dtype\n'
+                        'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                     )
-                    % self.dtype,
+                % (self.dtype, max_atol_idx, out_grads_eager[idx].flatten()[max_atol_idx].item(), out_grads_eager_baseline_np[idx].flatten()[max_atol_idx].item(),
+                    max_rtol_idx, out_grads_eager[idx].flatten()[max_rtol_idx].item(), out_grads_eager_baseline_np[idx].flatten()[max_rtol_idx].item()),
                 )
 
     def test_static_stability(self):
@@ -294,22 +325,32 @@ class TestGeluDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
+                max_atol_idx = np.argmax(np.abs(out_static-out_static_baseline))
+                max_rtol_idx = np.argmax(np.abs((out_static-out_static_baseline)/out_static))
                 np.testing.assert_equal(
                     out_static,
                     out_static_baseline,
                     err_msg=(
-                        'Develop: paddle.gelu static forward is unstable in %s dtype'
+                        'Develop: paddle.gelu static forward is unstable in %s dtype\n'
+                        'max_atol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
                     )
-                    % self.dtype,
+                    % (self.dtype, max_atol_idx, out_static.flatten()[max_atol_idx].item(), out_static_baseline.flatten()[max_atol_idx].item(),
+                        max_rtol_idx, out_static.flatten()[max_rtol_idx].item(), out_static_baseline.flatten()[max_rtol_idx].item()),
                 )
                 for idx in range(len(out_grads_static)):
+                    max_atol_idx = np.argmax(np.abs(out_grads_static[idx]-out_grads_static_baseline[idx]))
+                    max_rtol_idx = np.argmax(np.abs((out_grads_static[idx]-out_grads_static_baseline[idx])/out_grads_static[idx]))
                     np.testing.assert_equal(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.gelu static grad is unstable in %s dtype'
+                            'Develop: paddle.gelu static grad is unstable in %s dtype\n'
+                            'max_atol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
+                            'max_rtol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
                         )
-                        % self.dtype,
+                    % (self.dtype, max_atol_idx, out_grads_static[idx].flatten()[max_atol_idx].item(), out_grads_static_baseline[idx].flatten()[max_atol_idx].item(),
+                        max_rtol_idx, out_grads_static[idx].flatten()[max_rtol_idx].item(), out_grads_static_baseline[idx].flatten()[max_rtol_idx].item()),
                     )
 
 class TestGeluDevelopCase1_FP16(TestGeluDevelopCase1_FP32):
