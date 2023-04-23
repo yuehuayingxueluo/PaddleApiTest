@@ -6,7 +6,13 @@ import unittest
 from paddle.utils import map_structure
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+sys.path.append("..")
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 
 def generate_np_inputs_and_dout():
@@ -240,26 +246,30 @@ class TestFCDevelopCase1_FP32(unittest.TestCase):
                 out_grads_eager_2=out_grads_eager_np[2])
         
         # compare eager res with torch
-        np.testing.assert_allclose(
+        np_assert_accuracy(
             out_eager_np,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare paddle.incubate.nn.functional.fused_linear eager forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="forward",
+            api="paddle.incubate.nn.functional.fused_linear",
         )
         for idx in range(len(out_grads_eager_np)):
-            np.testing.assert_allclose(
+            np_assert_accuracy(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare paddle.incubate.nn.functional.fused_linear eager grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version_a="paddle_develop",
+                version_b="torch",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="backward",
+                api="paddle.incubate.nn.functional.fused_linear",
             )
     
     def test_static_accuracy(self):
@@ -292,26 +302,30 @@ class TestFCDevelopCase1_FP32(unittest.TestCase):
                 out_grads_static_2=out_grads_static[2])
         
         # compare static res with torch
-        np.testing.assert_allclose(
+        np_assert_accuracy(
             out_static,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare paddle.incubate.nn.functional.fused_linear static forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="static",
+            fwd_or_bkd="forward",
+            api="paddle.incubate.nn.functional.fused_linear",
         )
         for idx in range(len(out_grads_static)):
-            np.testing.assert_allclose(
+            np_assert_accuracy(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare paddle.incubate.nn.functional.fused_linear static grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version_a="paddle_develop",
+                version_b="torch",
+                eager_or_static_mode="static",
+                fwd_or_bkd="backward",
+                api="paddle.incubate.nn.functional.fused_linear",
             )
 
     def test_eager_stability(self):
@@ -333,22 +347,24 @@ class TestFCDevelopCase1_FP32(unittest.TestCase):
                                     lambda x: x.numpy(),
                                     out_grads_eager,
                                 )
-            np.testing.assert_equal(
+            np_assert_staility(
                 out_eager,
                 out_eager_baseline_np,
-                err_msg=(
-                    'Develop: paddle.incubate.nn.functional.fused_linear eager forward is unstable in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version="paddle_develop",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="forward",
+                api="paddle.incubate.nn.functional.fused_linear",
             )
             for idx in range(len(out_grads_eager)):
-                np.testing.assert_equal(
+                np_assert_staility(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
-                    err_msg=(
-                        'Develop: paddle.incubate.nn.functional.fused_linear eager grad is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="paddle.incubate.nn.functional.fused_linear",
                 )
 
     def test_static_stability(self):
@@ -379,22 +395,24 @@ class TestFCDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
-                np.testing.assert_equal(
+                np_assert_staility(
                     out_static,
                     out_static_baseline,
-                    err_msg=(
-                        'Develop: paddle.incubate.nn.functional.fused_linear static forward is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="paddle.incubate.nn.functional.fused_linear",
                 )
                 for idx in range(len(out_grads_static)):
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
-                        err_msg=(
-                            'Develop: paddle.incubate.nn.functional.fused_linear static grad is unstable in %s dtype'
-                        )
-                        % self.dtype,
+                        self.dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="static",
+                        fwd_or_bkd="backward",
+                        api="paddle.incubate.nn.functional.fused_linear",
                     )
 
 class TestFCDevelopCase1_FP16(TestFCDevelopCase1_FP32):
