@@ -5,13 +5,18 @@ import unittest
 from paddle.utils import map_structure
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 
 def generate_np_inputs_and_dout():
-    x_case1 = np.random.random(size=[1, 1]).astype("float32")
-    dout_case1 = np.random.random(size=[1]).astype("float32")
-    dout_t_case1 = np.array(dout_case1[0], dtype="float32" )
+    x_case1 = np.random.random(size=[1, 1]).astype("float32")-0.5
+    dout_case1 = np.random.random(size=[1]).astype("float32")-0.5
+    dout_t_case1 = np.array(dout_case1[0], dtype="float32" )-0.5
 
     np.savez("./inputs_case1.npz", x = x_case1, dout = dout_case1, dout_t = dout_t_case1)
 
@@ -161,27 +166,32 @@ class TestMeanDevelopCase1_FP32(unittest.TestCase):
         # save eager res for test_mean_incubate
         np.savez(self.save_eager_res_path, out_eager=out_eager_np, out_grads_eager_0=out_grads_eager_np[0])
         
-        # compare eager res with torch
-        np.testing.assert_allclose(
+        # compare eager forward res with torch
+        np_assert_accuracy(
             out_eager_np,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare mean eager forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="forward",
+            api="paddle.mean",
         )
+        # compare develop eager backward res with torch
         for idx in range(len(out_grads_eager_np)):
-            np.testing.assert_allclose(
+            np_assert_accuracy(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare mean eager grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version_a="paddle_develop",
+                version_b="torch",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="backward",
+                api="paddle.mean",
             )
     
     def test_static_accuracy(self):
@@ -207,27 +217,32 @@ class TestMeanDevelopCase1_FP32(unittest.TestCase):
         # save static res for test_mean_incubate
         np.savez(self.save_static_res_path, out_static=out_static, out_grads_static_0=out_grads_static[0])
         
-        # compare static res with torch
-        np.testing.assert_allclose(
+                # compare develop static forward res with torch
+        np_assert_accuracy(
             out_static,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare mean static forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="static",
+            fwd_or_bkd="forward",
+            api="paddle.mean",
         )
+        # compare develop static backward res with torch
         for idx in range(len(out_grads_static)):
-            np.testing.assert_allclose(
+            np_assert_accuracy(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare mean static grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version_a="paddle_develop",
+                version_b="torch",
+                eager_or_static_mode="static",
+                fwd_or_bkd="backward",
+                api="paddle.mean",
             )
 
     def test_eager_stability(self):
@@ -249,22 +264,25 @@ class TestMeanDevelopCase1_FP32(unittest.TestCase):
                                     lambda x: x.numpy(),
                                     out_grads_eager,
                                 )
-            np.testing.assert_equal(
+            np_assert_staility(
                 out_eager,
                 out_eager_baseline_np,
-                err_msg=(
-                    'Develop: paddle.mean eager forward is unstable in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version="paddle_develop",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="forward",
+                api="paddle.mean",
             )
+            # test develop eager backward stability
             for idx in range(len(out_grads_eager)):
-                np.testing.assert_equal(
+                np_assert_staility(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
-                    err_msg=(
-                        'Develop: paddle.mean eager grad is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="paddle.mean",
                 )
 
     def test_static_stability(self):
@@ -293,22 +311,26 @@ class TestMeanDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
-                np.testing.assert_equal(
+                # test develop static forward stability
+                np_assert_staility(
                     out_static,
                     out_static_baseline,
-                    err_msg=(
-                        'Develop: paddle.mean static forward is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="paddle.mean",
                 )
+                # test develop static backward stability
                 for idx in range(len(out_grads_static)):
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
-                        err_msg=(
-                            'Develop: paddle.mean static grad is unstable in %s dtype'
-                        )
-                        % self.dtype,
+                        self.dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="static",
+                        fwd_or_bkd="backward",
+                        api="paddle.mean",
                     )
 
 class TestMeanDevelopCase1_FP16(TestMeanDevelopCase1_FP32):
