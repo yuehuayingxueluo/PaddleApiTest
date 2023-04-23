@@ -240,7 +240,7 @@ class TestPaddle(init_config_class.InitConfigClass):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(1):
+        for i in range(50):
             out_eager, out_grads_eager = self._cal_eager_res(logits_eager, label_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager.numpy()
@@ -294,7 +294,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(1):
+            for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"logits": self.np_paddle_logits,
