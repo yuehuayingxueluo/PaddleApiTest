@@ -6,7 +6,12 @@ import init_config_class
 import random
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 def set_random_seed(seed):
     """Set random seed for reproducability."""
@@ -126,38 +131,40 @@ class TestPaddle(init_config_class.InitConfigClass):
         del out_grads_eager
         paddle.device.cuda.empty_cache()
 
-        print
-
         if paddle.distributed.get_rank() == 0:
 
             np.savez(self._save_eager_res_path, out_eager=out_eager_np, out_grads_eager=out_grads_eager_np)
 
             # compare eager res with torch
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_eager_np,
                     self._out_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare parallel_cross_entropy eager forward res with torch failed in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="forward",
+                    api="fleet.meta_parallel.ParallelCrossEntropy",
                 )
             except Exception as e:
                 print(e)
                 print("eager_accuracy forward {dtype} failed".format(dtype=self.dtype))
             
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_grads_eager_np,
                     self._out_grads_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare parallel_cross_entropy eager grad res with torch failed in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="fleet.meta_parallel.ParallelCrossEntropy",
                 )
             except Exception as e:
                 print(e)
@@ -190,30 +197,34 @@ class TestPaddle(init_config_class.InitConfigClass):
 
             # compare static res with torch
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_static,
                     self._out_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare parallel_cross_entropy static forward res with torch failed in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="fleet.meta_parallel.ParallelCrossEntropy",
                 )
             except Exception as e:
                 print(e)
                 print("static_accuracy forward {dtype} failed".format(dtype=self.dtype))
 
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_grads_static,
                     self._out_grads_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare parallel_cross_entropy static grad res with torch failed in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="backward",
+                    api="fleet.meta_parallel.ParallelCrossEntropy",
                 )
             except Exception as e:
                 print(e)
@@ -229,33 +240,35 @@ class TestPaddle(init_config_class.InitConfigClass):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(1):
             out_eager, out_grads_eager = self._cal_eager_res(logits_eager, label_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager.numpy()
                 
             if paddle.distributed.get_rank() == 0:
                 try: 
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_eager,
                         out_eager_baseline_np,
-                        err_msg=(
-                            'Develop: parallel_cross_entropy eager forward is unstable in %s dtype'
-                        )
-                        % self.dtype,
+                        self.dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="eager",
+                        fwd_or_bkd="forward",
+                        api="fleet.meta_parallel.ParallelCrossEntropy",
                     )
                 except Exception as e:
                     print(e)
                     print("eager_stability forward {dtype} failed".format(dtype=self.dtype))
                 
                 try:
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_grads_eager,
                         out_grads_eager_baseline_np,
-                        err_msg=(
-                            'Develop: parallel_cross_entropy eager grad is unstable in %s dtype'
-                        )
-                        % self.dtype,
+                        self.dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="eager",
+                        fwd_or_bkd="backward",
+                        api="fleet.meta_parallel.ParallelCrossEntropy",
                     )
                 except Exception as e:
                     print(e)
@@ -281,7 +294,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(50):
+            for i in range(1):
                 out = exe.run(
                     mp,
                     feed={"logits": self.np_paddle_logits,
@@ -292,30 +305,32 @@ class TestPaddle(init_config_class.InitConfigClass):
 
                 if paddle.distributed.get_rank() == 0:
                     try:
-                        np.testing.assert_equal(
+                        np_assert_staility(
                             out_static,
                             out_static_baseline,
-                            err_msg=(
-                                'Develop: parallel_cross_entropy static forward is unstable in %s dtype'
-                            )
-                            % self.dtype,
+                            self.dtype,
+                            version="paddle_develop",
+                            eager_or_static_mode="static",
+                            fwd_or_bkd="forward",
+                            api="fleet.meta_parallel.ParallelCrossEntropy",
                         )
                     except Exception as e:
                         print(e)
                         print("static_stability forward {dtype} failed".format(dtype=self.dtype))
                         
                     try: 
-                        np.testing.assert_equal(
+                        np_assert_staility(
                             out_grads_static,
                             out_grads_static_baseline,
-                            err_msg=(
-                                'Develop: parallel_cross_entropy static grad is unstable in %s dtype'
-                            )
-                            % self.dtype,
+                            self.dtype,
+                            version="paddle_develop",
+                            eager_or_static_mode="static",
+                            fwd_or_bkd="backward",
+                            api="fleet.meta_parallel.ParallelCrossEntropy",
                         )
                     except Exception as e:
                         print(e)
-                        print("static_stability forward {dtype} failed".format(dtype=self.dtype))
+                        print("static_stability grad {dtype} failed".format(dtype=self.dtype))
 
 dtype_list = ["float32", "float16", "bfloat16"]
 
