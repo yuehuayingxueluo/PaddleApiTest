@@ -6,7 +6,12 @@ import init_config_class
 import random
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 def set_random_seed(seed):
     """Set random seed for reproducability."""
@@ -142,34 +147,37 @@ class TestPaddle(init_config_class.InitConfigClass):
 
             # compare eager res with torch
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_eager_np,
                     self._out_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare vocab_parallel_embedding eager forward res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="forward",
+                    api="fleet.meta_parallel.VocabParallelEmbedding",
                 )
             except Exception as e:
                 print(e)
                 print("eager_accuracy forward {dtype} failed".format(dtype=self._dtype))
-            
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_grads_eager_np,
                     self._out_grads_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare vocab_parallel_embedding eager grad res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="fleet.meta_parallel.VocabParallelEmbedding",
                 )
             except Exception as e:
                 print(e)
-                print("eager_accuracy grad {dtype} failed".format(dtype=self._dtype))
+                print("eager_accuracy backward {dtype} failed".format(dtype=self._dtype))
         
     def _test_static_accuracy(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -197,34 +205,38 @@ class TestPaddle(init_config_class.InitConfigClass):
 
             # compare static res with torch
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_static,
                     self._out_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare vocab_parallel_embedding static forward res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="fleet.meta_parallel.VocabParallelEmbedding",
                 )
             except Exception as e:
                 print(e)
                 print("static_accuracy forward {dtype} failed".format(dtype=self._dtype))
 
             try:
-                np.testing.assert_allclose(
+                np_assert_accuracy(
                     out_grads_static,
                     self._out_grads_torch,
                     self._atol,
                     self._rtol,
-                    err_msg=(
-                        'Develop: compare vocab_parallel_embedding static grad res with torch failed in %s dtype'
-                    )
-                    % self._dtype,
+                    self._dtype,
+                    version_a="paddle_develop",
+                    version_b="torch",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="backward",
+                    api="fleet.meta_parallel.VocabParallelEmbedding",
                 )
             except Exception as e:
                 print(e)
-                print("static_accuracy grad {dtype} failed".format(dtype=self._dtype))
+                print("static_accuracy backward {dtype} failed".format(dtype=self._dtype))
 
 
     def _test_eager_stability(self):
@@ -242,31 +254,33 @@ class TestPaddle(init_config_class.InitConfigClass):
             out_grads_eager = out_grads_eager.numpy()
                 
             if paddle.distributed.get_rank() == 0:
-                try: 
-                    np.testing.assert_equal(
+                try:
+                    np_assert_staility(
                         out_eager,
                         out_eager_baseline_np,
-                        err_msg=(
-                            'Develop: vocab_parallel_embedding eager forward is unstable in %s dtype'
-                        )
-                        % self._dtype,
+                        self._dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="eager",
+                        fwd_or_bkd="forward",
+                        api="fleet.meta_parallel.VocabParallelEmbedding",
                     )
                 except Exception as e:
                     print(e)
                     print("eager_stability forward {dtype} failed".format(dtype=self._dtype))
                 
                 try:
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_grads_eager,
                         out_grads_eager_baseline_np,
-                        err_msg=(
-                            'Develop: vocab_parallel_embedding eager grad is unstable in %s dtype'
-                        )
-                        % self._dtype,
+                        self._dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="eager",
+                        fwd_or_bkd="backward",
+                        api="fleet.meta_parallel.VocabParallelEmbedding",
                     )
                 except Exception as e:
                     print(e)
-                    print("eager_stability grad {dtype} failed".format(dtype=self._dtype))
+                    print("eager_stability backward {dtype} failed".format(dtype=self._dtype))
 
     def _test_static_stability(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -297,30 +311,32 @@ class TestPaddle(init_config_class.InitConfigClass):
 
                 if paddle.distributed.get_rank() == 0:
                     try:
-                        np.testing.assert_equal(
+                        np_assert_staility(
                             out_static,
                             out_static_baseline,
-                            err_msg=(
-                                'Develop: vocab_parallel_embedding static forward is unstable in %s dtype'
-                            )
-                            % self._dtype,
+                            self._dtype,
+                            version="paddle_develop",
+                            eager_or_static_mode="static",
+                            fwd_or_bkd="forward",
+                            api="fleet.meta_parallel.VocabParallelEmbedding",
                         )
                     except Exception as e:
                         print(e)
                         print("static_stability forward {dtype} failed".format(dtype=self._dtype))
-                        
-                    try: 
-                        np.testing.assert_equal(
-                            out_grads_static,
-                            out_grads_static_baseline,
-                            err_msg=(
-                                'Develop: vocab_parallel_embedding static grad is unstable in %s dtype'
-                            )
-                            % self._dtype,
+                    try:
+                        print("type(out_grads_static), type(out_grads_static_baseline): ", type(out_grads_static), type(out_grads_static_baseline))
+                        np_assert_staility(
+                            out_grads_static[0],
+                            out_grads_static_baseline[0],
+                            self._dtype,
+                            version="paddle_develop",
+                            eager_or_static_mode="static",
+                            fwd_or_bkd="backward",
+                            api="fleet.meta_parallel.VocabParallelEmbedding",
                         )
                     except Exception as e:
                         print(e)
-                        print("static_stability grad {dtype} failed".format(dtype=self._dtype))
+                        print("static_stability backward {dtype} failed".format(dtype=self._dtype))
 
 dtype_list = ["float32", "float16", "bfloat16"]
 
