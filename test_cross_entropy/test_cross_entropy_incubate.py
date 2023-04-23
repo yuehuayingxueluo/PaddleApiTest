@@ -301,12 +301,12 @@ class TestCrossEntropyDevelopCase1_FP16(TestCrossEntropyLossIncubateCase1_FP32):
         self.save_eager_res_path = "./eager_develop_res_case1_fp16.npz"
 
 
-class TestCrossEntropyDevelopCase2_BFP16(TestCrossEntropyLossIncubateCase1_FP32):
+class TestCrossEntropyDevelopCase1_BFP16(TestCrossEntropyLossIncubateCase1_FP32):
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
+        self.save_static_res_path = "./static_develop_res_case1_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case1_bfp16.npz"
 
 
 if __name__ == '__main__':

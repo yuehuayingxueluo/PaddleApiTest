@@ -1,4 +1,3 @@
-from utils import TOLERANCE, convert_dtype_to_torch_type
 import numpy as np
 import paddle
 import torch
@@ -6,12 +5,18 @@ import unittest
 from paddle.utils import map_structure
 import sys
 sys.path.append("..")
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 
 def generate_np_inputs_and_dout():
-    logits = np.random.random(size=[1, 46256]).astype("float32")
+    logits = np.random.random(size=[1, 46256]).astype("float32") - 0.5
     label = np.random.randint(46256, size=[1]).astype("int64")
-    dout = np.random.random(size=[1]).astype("float32")
+    dout = np.random.random(size=[1]).astype("float32") - 0.5
 
     np.savez("./inputs_case1.npz", logits=logits, label=label, dout=dout)
 
@@ -133,6 +138,7 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
             [out], [logits_t], grad_outputs=[dout_t])
         if self.dtype == "bfloat16":
             out = out.to(dtype=torch.float32)
+            out_grads = map_structure(lambda x:x.to(dtype=torch.float32), out_grads)
         return out, out_grads
 
     def cal_eager_res(self, logits, label, dout):
@@ -157,6 +163,7 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x:paddle.cast(x, dtype="float32"), out_grads)
         return out, out_grads
 
     def cal_static_res(self, logits, label, dout):
@@ -181,6 +188,7 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x:paddle.cast(x, dtype="float32"), out_grads)
         return out, out_grads
 
     def test_eager_accuracy(self):
@@ -204,26 +212,30 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
                  out_grads_eager_0=out_grads_eager_np[0])
 
         # compare eager res with torch
-        np.testing.assert_allclose(
+        np_assert_accuracy(
             out_eager_np,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare cross_entropy eager forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="forward",
+            api="cross_entroy",
         )
         for idx in range(len(out_grads_eager_np)):
-            np.testing.assert_allclose(
+            np_assert_accuracy(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare cross_entropy eager grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version_a="paddle_develop",
+                version_b="torch",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="backward",
+                api="cross_entroy",
             )
 
     def test_static_accuracy(self):
@@ -253,26 +265,30 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
                  out_grads_static_0=out_grads_static[0])
 
         # compare static res with torch
-        np.testing.assert_allclose(
+        np_assert_accuracy(
             out_static,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare cross_entropy static forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="static",
+            fwd_or_bkd="forward",
+            api="cross_entropy",
         )
         for idx in range(len(out_grads_static)):
-            np.testing.assert_allclose(
+            np_assert_accuracy(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare cross_entropy static grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version_a="paddle_develop",
+                version_b="torch",
+                eager_or_static_mode="static",
+                fwd_or_bkd="backward",
+                api="cross_entropy",
             )
 
     def test_eager_stability(self):
@@ -296,22 +312,24 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
                 lambda x: x.numpy(),
                 out_grads_eager,
             )
-            np.testing.assert_equal(
+            np_assert_staility(
                 out_eager,
                 out_eager_baseline_np,
-                err_msg=(
-                    'Develop: paddle.nn.functional.cross_entropy eager forward is unstable in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version="paddle_develop",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="forward",
+                api="paddle.nn.functional.cross_entropy",
             )
             for idx in range(len(out_grads_eager)):
-                np.testing.assert_equal(
+                np_assert_staility(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
-                    err_msg=(
-                        'Develop: paddle.nn.functional.cross_entropy eager grad is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="paddle.nn.functional.cross_entropy",
                 )
 
     def test_static_stability(self):
@@ -343,22 +361,24 @@ class TestCrossEntropyDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
-                np.testing.assert_equal(
+                np_assert_staility(
                     out_static,
                     out_static_baseline,
-                    err_msg=(
-                        'Develop: paddle.nn.functional.cross_entropy static forward is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="paddle.nn.functional.cross_entropy",
                 )
                 for idx in range(len(out_grads_static)):
-                    np.testing.assert_equal(
+                    np_assert_staility(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
-                        err_msg=(
-                            'Develop: paddle.nn.functional.cross_entropy static grad is unstable in %s dtype'
-                        )
-                        % self.dtype,
+                        self.dtype,
+                        version="paddle_develop",
+                        eager_or_static_mode="static",
+                        fwd_or_bkd="backward",
+                        api="paddle.nn.functional.cross_entropy",
                     )
 
 
@@ -370,12 +390,12 @@ class TestCrossEntropyDevelopCase1_FP16(TestCrossEntropyDevelopCase1_FP32):
         self.save_eager_res_path = "./eager_develop_res_case1_fp16.npz"
 
 
-class TestCrossEntropyDevelopCase2_BFP16(TestCrossEntropyDevelopCase1_FP32):
+class TestCrossEntropyDevelopCase1_BFP16(TestCrossEntropyDevelopCase1_FP32):
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
         self.dtype = "bfloat16"
-        self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
-        self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
+        self.save_static_res_path = "./static_develop_res_case1_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case1_bfp16.npz"
 
 
 if __name__ == '__main__':
