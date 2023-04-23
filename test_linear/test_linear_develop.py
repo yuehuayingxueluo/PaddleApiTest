@@ -268,7 +268,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="paddle.incubate.nn.functional.fused_linear",
+            api="paddle.nn.functional.linear",
         )
         for idx in range(len(out_grads_eager_np)):
             np_assert_accuracy(
@@ -281,7 +281,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="backward",
-                api="paddle.incubate.nn.functional.fused_linear",
+                api="paddle.nn.functional.linear",
             )
 
     def test_static_accuracy(self):
@@ -320,7 +320,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="static",
             fwd_or_bkd="forward",
-            api="paddle.incubate.nn.functional.fused_linear",
+            api="paddle.nn.functional.linear",
         )
         for idx in range(len(out_grads_static)):
             np_assert_accuracy(
@@ -333,7 +333,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="static",
                 fwd_or_bkd="backward",
-                api="paddle.incubate.nn.functional.fused_linear",
+                api="paddle.nn.functional.linear",
             )
 
     def test_eager_stability(self):
@@ -362,7 +362,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.incubate.nn.functional.fused_linear",
+                api="paddle.nn.functional.linear",
             )
             for idx in range(len(out_grads_eager)):
                 np_assert_staility(
@@ -372,7 +372,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="eager",
                     fwd_or_bkd="backward",
-                    api="paddle.incubate.nn.functional.fused_linear",
+                    api="paddle.nn.functional.linear",
                 )
 
     def test_static_stability(self):
@@ -410,7 +410,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="static",
                     fwd_or_bkd="forward",
-                    api="paddle.incubate.nn.functional.fused_linear",
+                    api="paddle.nn.functional.linear",
                 )
                 for idx in range(len(out_grads_static)):
                     np_assert_staility(
@@ -420,7 +420,7 @@ class TestLinearDevelopCase1_FP32(unittest.TestCase):
                         version="paddle_develop",
                         eager_or_static_mode="static",
                         fwd_or_bkd="backward",
-                        api="paddle.incubate.nn.functional.fused_linear",
+                        api="paddle.nn.functional.linear",
                     )
 
 class TestLinearDevelopCase1_FP16(TestLinearDevelopCase1_FP32):
