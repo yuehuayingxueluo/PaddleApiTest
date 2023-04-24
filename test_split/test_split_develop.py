@@ -9,11 +9,11 @@ from utils import TOLERANCE, convert_dtype_to_torch_type
 
 
 def generate_np_inputs_and_dout():
-    x_case1 = np.random.random(size=[1, 4096, 12288]).astype("float32")
+    x_case1 = np.random.random(size=[1, 4096, 12288]).astype("float32")-0.5
     dim_case1 = -1
     num_case1 = 2
-    dout1_case1 = np.random.random(size=[1, 4096, 6144]).astype("float32")
-    dout2_case1 = np.random.random(size=[1, 4096, 6144]).astype("float32")
+    dout1_case1 = np.random.random(size=[1, 4096, 6144]).astype("float32")-0.5
+    dout2_case1 = np.random.random(size=[1, 4096, 6144]).astype("float32")-0.5
 
     np.savez("./inputs_case1.npz", x=x_case1, dim=dim_case1, num=num_case1, dout1 = dout1_case1, dout2 = dout2_case1)
 
@@ -209,26 +209,36 @@ class TestSplitDevelopCase1_FP32(unittest.TestCase):
         
         # compare eager res with torch
         for idx in range(len(out_eager_np)):
+            max_atol_idx = np.argmax(np.abs(out_eager_np[idx]-self.out_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_eager_np[idx]-self.out_torch[idx])/out_eager_np[idx]))
             np.testing.assert_allclose(
                 out_eager_np[idx],
                 self.out_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare split eager forward res with torch failed in %s dtype'
+                    'Develop: compare split eager forward res with torch failed in %s dtype,\n'
+                    'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_eager_np[idx].flatten()[max_atol_idx].item(), self.out_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_eager_np[idx].flatten()[max_rtol_idx].item(), self.out_torch[idx].flatten()[max_rtol_idx].item()),
             )
         for idx in range(len(out_grads_eager_np)):
+            max_atol_idx = np.argmax(np.abs(out_grads_eager_np[idx]-self.out_grads_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_grads_eager_np[idx]-self.out_grads_torch[idx])/out_grads_eager_np[idx]))
             np.testing.assert_allclose(
                 out_grads_eager_np[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare split eager grad res with torch failed in %s dtype'
+                    'Develop: compare split eager grad res with torch failed in %s dtype,\n'
+                    'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_grads_eager_np[idx].flatten()[max_atol_idx].item(), self.out_grads_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_grads_eager_np[idx].flatten()[max_rtol_idx].item(), self.out_grads_torch[idx].flatten()[max_rtol_idx].item()),
             )
     
     def test_static_accuracy(self):
@@ -264,26 +274,36 @@ class TestSplitDevelopCase1_FP32(unittest.TestCase):
         
         # compare static res with torch
         for idx in range(len(out_static)):
+            max_atol_idx = np.argmax(np.abs(out_static[idx]-self.out_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_static[idx]-self.out_torch[idx])/out_static[idx]))
             np.testing.assert_allclose(
                 out_static[idx],
                 self.out_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare split static forward res with torch failed in %s dtype'
+                    'Develop: compare split static forward res with torch failed in %s dtype,\n'
+                    'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_static[idx].flatten()[max_atol_idx].item(), self.out_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_static[idx].flatten()[max_rtol_idx].item(), self.out_torch[idx].flatten()[max_rtol_idx].item()),
             )
         for idx in range(len(out_grads_static)):
+            max_atol_idx = np.argmax(np.abs(out_grads_static[idx]-self.out_grads_torch[idx]))
+            max_rtol_idx = np.argmax(np.abs((out_grads_static[idx]-self.out_grads_torch[idx])/out_grads_static[idx]))
             np.testing.assert_allclose(
                 out_grads_static[idx],
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare split static grad res with torch failed in %s dtype'
+                    'Develop: compare split static grad res with torch failed in %s dtype,\n'
+                    'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
+                    'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
                 )
-                % self.dtype,
+                % (self.dtype, max_atol_idx, out_grads_static[idx].flatten()[max_atol_idx].item(), self.out_grads_torch[idx].flatten()[max_atol_idx].item(),
+                max_rtol_idx, out_grads_static[idx].flatten()[max_rtol_idx].item(), self.out_grads_torch[idx].flatten()[max_rtol_idx].item()),
             )
 
     def test_eager_stability(self):
@@ -312,22 +332,32 @@ class TestSplitDevelopCase1_FP32(unittest.TestCase):
                                     out_grads_eager,
                                     )
             for idx in range(len(out_eager)):
+                max_atol_idx = np.argmax(np.abs(out_eager[idx]-out_eager_baseline_np[idx]))
+                max_rtol_idx = np.argmax(np.abs((out_eager[idx]-out_eager_baseline_np[idx])/out_eager[idx]))
                 np.testing.assert_equal(
                     out_eager[idx],
                     out_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.split eager forward is unstable in %s dtype'
+                        'Develop: paddle.split eager forward is unstable in %s dtype,\n'
+                        'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                     )
-                    % self.dtype,
+                    % (self.dtype, max_atol_idx, out_eager[idx].flatten()[max_atol_idx].item(), out_eager_baseline_np[idx].flatten()[max_atol_idx].item(),
+                    max_rtol_idx, out_eager[idx].flatten()[max_rtol_idx].item(), out_eager_baseline_np[idx].flatten()[max_rtol_idx].item()),
                 )
             for idx in range(len(out_grads_eager)):
+                max_atol_idx = np.argmax(np.abs(out_grads_eager[idx]-out_grads_eager_baseline_np[idx]))
+                max_rtol_idx = np.argmax(np.abs((out_grads_eager[idx]-out_grads_eager_baseline_np[idx])/out_grads_eager[idx]))
                 np.testing.assert_equal(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.split eager grad is unstable in %s dtype'
+                        'Develop: paddle.split eager grad is unstable in %s dtype,\n'
+                        'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
+                        'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                     )
-                    % self.dtype,
+                    % (self.dtype, max_atol_idx, out_grads_eager[idx].flatten()[max_atol_idx].item(), out_grads_eager_baseline_np[idx].flatten()[max_atol_idx].item(),
+                    max_rtol_idx, out_grads_eager[idx].flatten()[max_rtol_idx].item(), out_grads_eager_baseline_np[idx].flatten()[max_rtol_idx].item()),
                 )
 
     def test_static_stability(self):
@@ -360,22 +390,32 @@ class TestSplitDevelopCase1_FP32(unittest.TestCase):
                 )
                 out_static, out_grads_static = out[:2], out[2:]
                 for idx in range(len(out_static)):
+                    max_atol_idx = np.argmax(np.abs(out_static[idx]-out_static_baseline[idx]))
+                    max_rtol_idx = np.argmax(np.abs((out_static[idx]-out_static_baseline[idx])/out_static[idx]))
                     np.testing.assert_equal(
                         out_static[idx],
                         out_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.split static forward is unstable in %s dtype'
+                            'Develop: paddle.split static forward is unstable in %s dtype,\n'
+                            'max_atol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
+                            'max_rtol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
                         )
-                        % self.dtype,
+                        % (self.dtype, max_atol_idx, out_static[idx].flatten()[max_atol_idx].item(), out_static_baseline[idx].flatten()[max_atol_idx].item(),
+                        max_rtol_idx, out_static[idx].flatten()[max_rtol_idx].item(), out_static_baseline[idx].flatten()[max_rtol_idx].item()),
                     )
                 for idx in range(len(out_grads_static)):
+                    max_atol_idx = np.argmax(np.abs(out_grads_static[idx]-out_grads_static_baseline[idx]))
+                    max_rtol_idx = np.argmax(np.abs((out_grads_static[idx]-out_grads_static_baseline[idx])/out_grads_static[idx]))
                     np.testing.assert_equal(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.split static grad is unstable in %s dtype'
+                            'Develop: paddle.split static grad is unstable in %s dtype,\n'
+                            'max_atol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
+                            'max_rtol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
                         )
-                        % self.dtype,
+                        % (self.dtype, max_atol_idx, out_grads_static[idx].flatten()[max_atol_idx].item(), out_grads_static_baseline[idx].flatten()[max_atol_idx].item(),
+                        max_rtol_idx, out_grads_static[idx].flatten()[max_rtol_idx].item(), out_grads_static_baseline[idx].flatten()[max_rtol_idx].item()),
                     )
 
 
