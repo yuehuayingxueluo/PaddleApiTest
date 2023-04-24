@@ -3,6 +3,9 @@ set -ex
 
 card_num=$1
 version=$2
+log_dir=$3
+
+export NVIDIA_TF32_OVERRIDE=0
 
 case $card_num in 
     2 ) export CUDA_VISIBLE_DEVICES=0,1 ;;
@@ -18,9 +21,8 @@ esac
 
 if [ "$version" == 'develop' ]; then
     rm -rf *.npz
-    rm -rf log/
     python get_torch_result.py
-    python -m paddle.distributed.launch get_and_test_paddle_result.py
+    python -m paddle.distributed.launch --log_dir $log_dir get_and_test_paddle_result.py
 elif [ "$version" == 'incubate' ]; then
     python -m paddle.distributed.launch test_paddle_incubate.py
 else

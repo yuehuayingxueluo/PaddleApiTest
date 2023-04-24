@@ -5,7 +5,12 @@ import init_config_class
 import prepare_data
 import sys
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 class TestTorch(init_config_class.InitConfigClass):
     def __init__(self, device, np_input_dir="", dtype="", torch_dir=""):
@@ -13,15 +18,9 @@ class TestTorch(init_config_class.InitConfigClass):
         self._init_threshold()
         self._init_np_inputs_and_dout()
         self._device = device
-        x_torch, table_torch, dout_torch = self._gen_torch_inputs_and_dout()
-        out_torch, out_grads_torch = self._cal_torch_res(x_torch, table_torch, dout_torch)
-        del x_torch 
-        del table_torch 
-        del dout_torch
+        out_torch, out_grads_torch = self._get_and_compare_torch_result()
         
-        a = out_torch.cpu().detach().numpy()
-        b = out_grads_torch.cpu().detach().numpy()
-        np.savez(torch_dir, torch_out=a, torch_out_grad=b)
+        np.savez(torch_dir, torch_out=out_torch, torch_out_grad=out_grads_torch)
         del out_torch, out_grads_torch
         torch.cuda.empty_cache()
     
@@ -68,6 +67,44 @@ class TestTorch(init_config_class.InitConfigClass):
             out_grads = out_grads.to(dtype=torch.float32)
         
         return out, out_grads
+    
+    def _get_and_compare_torch_result(self):
+        x_torch, table_torch, dout_torch = self._gen_torch_inputs_and_dout()
+        base_out, base_dout = self._cal_torch_res(x_torch, table_torch, dout_torch)
+        base_out_np = base_out.detach().cpu().numpy()
+        base_dout_np = base_dout.detach().cpu().numpy()
+        for i in range(50):
+            x_torch, table_torch, dout_torch = self._gen_torch_inputs_and_dout()
+            out, dout = self._cal_torch_res(x_torch, table_torch, dout_torch)
+            out_np =  out.detach().cpu().numpy()
+            dout_np = dout.detach().cpu().numpy()
+            try:
+                np_assert_staility(
+                    base_out_np,
+                    out_np,
+                    self._dtype,
+                    version="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="forward",
+                    api="torch.nn.Embedding",
+                )
+            except Exception as e:
+                print(e)
+                print("torch_stability forward {dtype} failed".format(dtype=self._dtype))
+            try:
+                np_assert_staility(
+                    base_dout_np,
+                    dout_np,
+                    self._dtype,
+                    version="torch",
+                    eager_or_static_mode="eager",
+                    fwd_or_bkd="backward",
+                    api="torch.nn.Embedding",
+                )
+            except Exception as e:
+                print(e)
+                print("torch_stability backward {dtype} failed".format(dtype=self._dtype))
+        return base_out_np, base_dout_np
 
 dtype_list = ["float32", "float16", "bfloat16"]
 
