@@ -280,7 +280,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                 out_eager,
                 out_eager_baseline_np,
                 err_msg=(
-                    'Develop: paddle.nn.functional.transpose eager forward is unstable in %s dtype\n'
+                    'Develop: paddle.transpose eager forward is unstable in %s dtype\n'
                     'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                     'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                 )
@@ -294,7 +294,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
                     err_msg=(
-                        'Develop: paddle.nn.functional.transpose eager grad is unstable in %s dtype\n'
+                        'Develop: paddle.transpose eager grad is unstable in %s dtype\n'
                         'max_atol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                         'max_rtol_idx: %d, eager_value: %d, eager_baseline_value: %d, \n'
                     )
@@ -334,7 +334,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                     out_static,
                     out_static_baseline,
                     err_msg=(
-                        'Develop: paddle.nn.functional.transpose static forward is unstable in %s dtype\n'
+                        'Develop: paddle.transpose static forward is unstable in %s dtype\n'
                         'max_atol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
                         'max_rtol_idx: %d, static_value: %d, eager_baseline_value: %d, \n'
                     )
@@ -348,7 +348,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
                         err_msg=(
-                            'Develop: paddle.nn.functional.transpose static grad is unstable in %s dtype\n'
+                            'Develop: paddle.transpose static grad is unstable in %s dtype\n'
                             'max_atol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
                             'max_rtol_idx: %d, static_value: %d, static_baseline_value: %d, \n'
                         )
