@@ -175,7 +175,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
             self.atol,
             self.rtol,
             err_msg=(
-                'Develop: compare paddle.nn.funtional.transpose eager forward res with torch failed in %s dtype, \n'
+                'Develop: compare paddle.transpose eager forward res with torch failed in %s dtype, \n'
                 'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
                 'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
             )
@@ -191,7 +191,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare paddle.nn.funtional.transpose eager grad res with torch failed in %s dtype, \n'
+                    'Develop: compare paddle.transpose eager grad res with torch failed in %s dtype, \n'
                     'max_atol_idx: %d, eager_value: %d, torch_value: %d, \n'
                     'max_rtol_idx: %d, eager_value: %d, torch_value: %d, \n'
                 )
@@ -231,7 +231,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
             self.atol,
             self.rtol,
             err_msg=(
-                'Develop: compare paddle.nn.funtional.transpose static forward res with torch failed in %s dtype\n'
+                'Develop: compare paddle.transpose static forward res with torch failed in %s dtype\n'
                 'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
                 'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
             )
@@ -247,7 +247,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                 self.atol,
                 self.rtol,
                 err_msg=(
-                    'Develop: compare paddle.nn.funtional.transpose static grad res with torch failed in %s dtype, \n'
+                    'Develop: compare paddle.transpose static grad res with torch failed in %s dtype, \n'
                     'max_atol_idx: %d, static_value: %d, torch_value: %d, \n'
                     'max_rtol_idx: %d, static_value: %d, torch_value: %d, \n'
                 )
