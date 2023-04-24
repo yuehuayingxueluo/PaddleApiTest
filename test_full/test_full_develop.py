@@ -21,7 +21,12 @@ import paddle
 import torch
 
 sys.path.append("..")
-from utils import TOLERANCE, convert_dtype_to_torch_type
+from utils import (
+    TOLERANCE,
+    convert_dtype_to_torch_type,
+    np_assert_accuracy,
+    np_assert_staility,
+)
 
 
 def generate_np_inputs():
@@ -133,15 +138,17 @@ class TestFullDevelopCase1_FP32(unittest.TestCase):
         np.savez(self.save_eager_res_path, out_eager=out_eager_np)
 
         # compare eager res with torch
-        np.testing.assert_allclose(
+        np_assert_accuracy(
             out_eager_np,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare full eager forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="forward",
+            api="full",
         )
 
     def test_static_accuracy(self):
@@ -170,15 +177,17 @@ class TestFullDevelopCase1_FP32(unittest.TestCase):
         np.savez(self.save_static_res_path, out_static=out_static)
 
         # compare static res with torch
-        np.testing.assert_allclose(
+        np_assert_accuracy(
             out_static,
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare full static forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="static",
+            fwd_or_bkd="forward",
+            api="full",
         )
 
     def test_eager_stability(self):
@@ -195,13 +204,14 @@ class TestFullDevelopCase1_FP32(unittest.TestCase):
                 shape_eager, fill_value_eager, dtype_eager
             )
             out_eager = out_eager.numpy()
-            np.testing.assert_equal(
+            np_assert_staility(
                 out_eager,
                 out_eager_baseline_np,
-                err_msg=(
-                    'Develop: paddle.full eager forward is unstable in %s dtype'
-                )
-                % self.dtype,
+                self.dtype,
+                version="paddle_develop",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="forward",
+                api="full",
             )
 
     def test_static_stability(self):
@@ -231,13 +241,14 @@ class TestFullDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=[out_static_pg],
                 )
                 out_static = out[0]
-                np.testing.assert_equal(
+                np_assert_staility(
                     out_static,
                     out_static_baseline,
-                    err_msg=(
-                        'Develop: paddle.full static forward is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="full",
                 )
 
 
