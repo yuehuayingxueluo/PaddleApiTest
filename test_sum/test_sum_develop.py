@@ -91,7 +91,7 @@ class TestSumDevelopCase1_FP32(unittest.TestCase):
         )
         x_eager.stop_gradient = False
         dout_eager = paddle.to_tensor(
-            self.np_dout,
+            [self.np_dout],
             dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
             place="gpu",
         )
@@ -107,7 +107,7 @@ class TestSumDevelopCase1_FP32(unittest.TestCase):
         x_static.stop_gradient = False
         dout_static = paddle.static.data(
             'dout',
-            shape=self.np_dout.shape,
+            shape=[1],
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
         dout_static.stop_gradient = False
@@ -356,6 +356,7 @@ class TestSumDevelopCase2_FP32(TestSumDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
+
 class TestSumDevelopCase2_FP16(TestSumDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "float16"
@@ -375,6 +376,7 @@ class TestSumDevelopCase3_FP32(TestSumDevelopCase1_FP32):
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
+
 
 class TestSumDevelopCase3_FP16(TestSumDevelopCase3_FP32):
     def init_params(self):
@@ -396,6 +398,7 @@ class TestSumDevelopCase4_FP32(TestSumDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
+
 class TestSumDevelopCase4_FP16(TestSumDevelopCase4_FP32):
     def init_params(self):
         self.dtype = "float16"
@@ -415,6 +418,7 @@ class TestSumDevelopCase5_FP32(TestSumDevelopCase1_FP32):
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
+
 
 class TestSumDevelopCase5_FP16(TestSumDevelopCase5_FP32):
     def init_params(self):
@@ -436,6 +440,7 @@ class TestSumDevelopCase6_FP32(TestSumDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
+
 class TestSumDevelopCase6_FP16(TestSumDevelopCase6_FP32):
     def init_params(self):
         self.dtype = "float16"
@@ -455,6 +460,7 @@ class TestSumDevelopCase7_FP32(TestSumDevelopCase1_FP32):
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
+
 
 class TestSumDevelopCase7_FP16(TestSumDevelopCase7_FP32):
     def init_params(self):
@@ -476,6 +482,7 @@ class TestSumDevelopCase8_FP32(TestSumDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
+
 class TestSumDevelopCase8_FP16(TestSumDevelopCase8_FP32):
     def init_params(self):
         self.dtype = "float16"
@@ -496,6 +503,7 @@ class TestSumDevelopCase9_FP32(TestSumDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
+
 class TestSumDevelopCase9_FP16(TestSumDevelopCase9_FP32):
     def init_params(self):
         self.dtype = "float16"
@@ -515,6 +523,7 @@ class TestSumDevelopCase10_FP32(TestSumDevelopCase1_FP32):
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
+
 
 class TestSumDevelopCase10_FP16(TestSumDevelopCase10_FP32):
     def init_params(self):
