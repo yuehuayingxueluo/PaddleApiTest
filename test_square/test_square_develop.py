@@ -340,7 +340,6 @@ class TestSquareDevelopCase1_FP16(TestSquareDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
 
-
 class TestSquareDevelopCase1_BFP16(TestSquareDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
@@ -360,12 +359,124 @@ class TestSquareDevelopCase2_FP16(TestSquareDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "float16"
 
-
 class TestSquareDevelopCase2_BFP16(TestSquareDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
 
+class TestSquareDevelopCase3_FP32(TestSquareDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[4096, 10944]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[4096, 10944]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestSquareDevelopCase3_FP16(TestSquareDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestSquareDevelopCase3_BFP16(TestSquareDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestSquareDevelopCase4_FP32(TestSquareDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[4096, 6144]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[4096, 6144]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestSquareDevelopCase4_FP16(TestSquareDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestSquareDevelopCase4_BFP16(TestSquareDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestSquareDevelopCase5_FP32(TestSquareDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[4096]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[4096]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestSquareDevelopCase5_FP16(TestSquareDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestSquareDevelopCase5_BFP16(TestSquareDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestSquareDevelopCase6_FP32(TestSquareDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[50176, 4096]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[50176, 4096]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestSquareDevelopCase6_FP16(TestSquareDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestSquareDevelopCase6_BFP16(TestSquareDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestSquareDevelopCase7_FP32(TestSquareDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[5472, 4096]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[5472, 4096]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestSquareDevelopCase7_FP16(TestSquareDevelopCase7_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestSquareDevelopCase7_BFP16(TestSquareDevelopCase7_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestSquareDevelopCase8_FP32(TestSquareDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[6144]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[6144]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestSquareDevelopCase8_FP16(TestSquareDevelopCase8_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestSquareDevelopCase8_BFP16(TestSquareDevelopCase8_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
