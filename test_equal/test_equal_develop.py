@@ -29,7 +29,7 @@ from utils import (
     np_assert_staility,
 )
 
-class TestCosDevelopCase1_FP32(unittest.TestCase):
+class TestEqualDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
@@ -244,12 +244,12 @@ class TestCosDevelopCase1_FP32(unittest.TestCase):
                 # test develop static forward stability
 
 
-class TestCosDevelopCase1_FP16(TestCosDevelopCase1_FP32):
+class TestEqualDevelopCase1_FP16(TestEqualDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
 
 
-class TestCosDevelopCase1_BFP16(TestCosDevelopCase1_FP32):
+class TestEqualDevelopCase1_BFP16(TestEqualDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
