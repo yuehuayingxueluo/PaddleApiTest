@@ -176,8 +176,6 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static],
             )
             out_static = out
-#            print(out)
-#            print(self.out_torch)
 
         # compare develop static forward res with torch
         np.testing.assert_allclose(
@@ -242,6 +240,11 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
                 )
                 out_static= out
                 # test develop static forward stability
+                np.testing.assert_allclose(out_static,[self.out_torch],self.atol,self.rtol, err_msg=('Develop: compare equal eager forward res with torch failed in %s dtype,\n'
+			    ' eager_value: %d, torch_value: %d, \n'
+			    ' eager_value: %d, torch_value: %d, \n')
+			     % (self.dtype,out_static[0], self.out_torch[0],
+			     out_static[0], self.out_torch[0]),)
 
 
 class TestEqualDevelopCase1_FP16(TestEqualDevelopCase1_FP32):
