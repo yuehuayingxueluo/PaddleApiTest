@@ -58,10 +58,12 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
 
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.random(size=[1]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[1]).astype("float32") - 0.5
+        self.np_x = np.random.random(
+            size=[1, 16, 4096]).astype("float32") - 0.5
+        self.np_y = np.random.random(
+            size=[1, 16, 4096]).astype("float32") + 0.5
         self.np_dout = np.random.random(
-            size=[1]).astype("float32") - 0.5
+            size=[1, 16, 4096]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -206,7 +208,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="paddle.square",
+            api="paddle.divide",
         )
         # compare develop eager backward res with torch
         for idx in range(len(out_grads_eager_np)):
@@ -220,7 +222,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="backward",
-                api="paddle.square",
+                api="paddle.divide",
             )
 
     def test_static_accuracy(self):
@@ -257,7 +259,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="static",
             fwd_or_bkd="forward",
-            api="paddle.square",
+            api="paddle.divide",
         )
         # compare develop static backward res with torch
         for idx in range(len(out_grads_static)):
@@ -271,7 +273,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="static",
                 fwd_or_bkd="backward",
-                api="paddle.square",
+                api="paddle.divide",
             )
 
     def test_eager_stability(self):
@@ -305,7 +307,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.square",
+                api="paddle.divide",
             )
             # test develop eager backward stability
             for idx in range(len(out_grads_eager)):
@@ -316,7 +318,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="eager",
                     fwd_or_bkd="backward",
-                    api="paddle.square",
+                    api="paddle.divide",
                 )
 
     def test_static_stability(self):
@@ -356,7 +358,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="static",
                     fwd_or_bkd="forward",
-                    api="paddle.square",
+                    api="paddle.divide",
                 )
                 # test develop static backward stability
                 for idx in range(len(out_grads_static)):
@@ -367,7 +369,7 @@ class TestDivideDevelopCase1_FP32(unittest.TestCase):
                         version="paddle_develop",
                         eager_or_static_mode="static",
                         fwd_or_bkd="backward",
-                        api="paddle.square",
+                        api="paddle.divide",
                     )
 
 
@@ -384,10 +386,10 @@ class TestDivideDevelopCase1_BFP16(TestDivideDevelopCase1_FP32):
 class TestDivideDevelopCase2_FP32(TestDivideDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.random(size=[1, 16, 4096, 128]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[1, 16, 4096, 128]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[1]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1]).astype("float32") - 0.5
         self.np_dout = np.random.random(
-            size=[1, 16, 4096, 128]).astype("float32") - 0.5
+            size=[1]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
