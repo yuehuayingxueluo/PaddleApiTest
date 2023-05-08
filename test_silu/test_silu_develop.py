@@ -15,7 +15,7 @@ from utils import (
     np_assert_staility,
 )
 
-class TestSquareDevelopCase1_FP32(unittest.TestCase):
+class TestSiluDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
@@ -322,12 +322,12 @@ class TestSquareDevelopCase1_FP32(unittest.TestCase):
                     )
 
 
-class TestSquareDevelopCase1_FP16(TestSquareDevelopCase1_FP32):
+class TestSiluDevelopCase1_FP16(TestSiluDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
 
 
-class TestSquareDevelopCase1_BFP16(TestSquareDevelopCase1_FP32):
+class TestSiluDevelopCase1_BFP16(TestSiluDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
