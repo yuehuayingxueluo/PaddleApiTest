@@ -49,8 +49,7 @@ class TestGaussianDevelopCase1_FP32(unittest.TestCase):
         self.rtol = TOLERANCE[self.dtype]["rtol"]
 
     def cal_torch_res(self):
-        if self.dtype == "bfloat16":
-            out = torch.zeros(*self.size, device='cuda', dtype=convert_dtype_to_torch_type(self.dtype))
+        out = torch.zeros(*self.size, device='cuda', dtype=convert_dtype_to_torch_type(self.dtype))
         torch.manual_seed(0)
         torch.cuda.manual_seed(0)
         torch.normal(mean=self.mean, std=self.std, size=self.size, out=out)
