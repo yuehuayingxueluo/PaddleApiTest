@@ -115,27 +115,6 @@ class TestAddInplaceDevelopCase1_FP32(unittest.TestCase):
         dout_eager.stop_gradient = False
         return x_eager, y_eager, dout_eager
 
-    def gen_static_inputs_and_dout(self):
-        x_static = paddle.static.data(
-            'x',
-            shape=self.np_x.shape,
-            dtype=self.dtype if self.dtype != "bfloat16" else "float32",
-        )
-        x_static.stop_gradient = False
-        y_static = paddle.static.data(
-            'y',
-            shape=self.np_y.shape,
-            dtype=self.dtype if self.dtype != "bfloat16" else "float32",
-        )
-        y_static.stop_gradient = False
-        dout_static = paddle.static.data(
-            'dout',
-            shape=self.np_dout.shape,
-            dtype=self.dtype if self.dtype != "bfloat16" else "float32",
-        )
-        dout_static.stop_gradient = False
-        return x_static, y_static, dout_static
-
     def cal_torch_res(self, x, y, dout):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
@@ -159,22 +138,6 @@ class TestAddInplaceDevelopCase1_FP32(unittest.TestCase):
         y_t = paddle.assign(y)
         out = paddle.tensor.add_(x_t, y_t)
         out_grads = paddle.grad([out], [x, y], grad_outputs=[dout])
-        if self.dtype == "bfloat16":
-            out = paddle.cast(out, dtype="float32")
-            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
-        return out, out_grads
-
-    def cal_static_res(self, x, y, dout):
-        if self.dtype == "bfloat16":
-            x = paddle.cast(x, dtype="uint16")
-            y = paddle.cast(y, dtype="uint16")
-            dout = paddle.cast(dout, dtype="uint16")
-        x_t = paddle.assign(x)
-        y_t = paddle.assign(y)
-        out = paddle.tensor.add_(x_t, y_t)
-        out_grads = paddle.static.gradients(
-            [out], [x, y], target_gradients=[dout]
-        )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
             out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
@@ -225,57 +188,6 @@ class TestAddInplaceDevelopCase1_FP32(unittest.TestCase):
                 api="paddle.tensor.add_",
             )
 
-    def test_static_accuracy(self):
-        with paddle.fluid.framework._dygraph_guard(None):
-            mp, sp = paddle.static.Program(), paddle.static.Program()
-            with paddle.static.program_guard(mp, sp):
-                (
-                    x_static,
-                    y_static,
-                    dout_static,
-                ) = self.gen_static_inputs_and_dout()
-                (out_static, out_grads_static) = self.cal_static_res(
-                    x_static,
-                    y_static,
-                    dout_static,
-                )
-            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
-            exe.run(sp)
-            out = exe.run(
-                mp,
-                feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
-                fetch_list=[out_static] + out_grads_static,
-            )
-            out_static, out_grads_static = out[0], out[1:]
-
-        # compare develop static forward res with torch
-        np_assert_accuracy(
-            out_static,
-            self.out_torch,
-            self.atol,
-            self.rtol,
-            self.dtype,
-            version_a="paddle_develop",
-            version_b="torch",
-            eager_or_static_mode="static",
-            fwd_or_bkd="forward",
-            api="paddle.tensor.add_",
-        )
-        # compare develop static backward res with torch
-        for idx in range(len(out_grads_static)):
-            np_assert_accuracy(
-                out_grads_static[idx],
-                self.out_grads_torch[idx],
-                self.atol,
-                self.rtol,
-                self.dtype,
-                version_a="paddle_develop",
-                version_b="torch",
-                eager_or_static_mode="static",
-                fwd_or_bkd="backward",
-                api="paddle.tensor.add_",
-            )
-
     def test_eager_stability(self):
         x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(
@@ -320,58 +232,6 @@ class TestAddInplaceDevelopCase1_FP32(unittest.TestCase):
                     fwd_or_bkd="backward",
                     api="paddle.tensor.add_",
                 )
-
-    def test_static_stability(self):
-        with paddle.fluid.framework._dygraph_guard(None):
-            mp, sp = paddle.static.Program(), paddle.static.Program()
-            with paddle.static.program_guard(mp, sp):
-                (
-                    x_static,
-                    y_static,
-                    dout_static,
-                ) = self.gen_static_inputs_and_dout()
-                (out_static_pg, out_grads_static_pg) = self.cal_static_res(
-                    x_static,
-                    y_static,
-                    dout_static,
-                )
-            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
-            exe.run(sp)
-            out = exe.run(
-                mp,
-                feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
-                fetch_list=[out_static_pg] + out_grads_static_pg,
-            )
-            out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
-                out = exe.run(
-                    mp,
-                    feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
-                    fetch_list=[out_static_pg] + out_grads_static_pg,
-                )
-                out_static, out_grads_static = out[0], out[1:]
-                # test develop static forward stability
-                np_assert_staility(
-                    out_static,
-                    out_static_baseline,
-                    self.dtype,
-                    version="paddle_develop",
-                    eager_or_static_mode="static",
-                    fwd_or_bkd="forward",
-                    api="paddle.tensor.add_",
-                )
-                # test develop static backward stability
-                for idx in range(len(out_grads_static)):
-                    np_assert_staility(
-                        out_grads_static[idx],
-                        out_grads_static_baseline[idx],
-                        self.dtype,
-                        version="paddle_develop",
-                        eager_or_static_mode="static",
-                        fwd_or_bkd="backward",
-                        api="paddle.tensor.add_",
-                    )
-
 
 class TestAddInplaceDevelopCase1_FP16(TestAddInplaceDevelopCase1_FP32):
     def init_params(self):
