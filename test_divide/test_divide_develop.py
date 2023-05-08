@@ -384,7 +384,7 @@ class TestDivideDevelopCase2_FP32(TestDivideDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array 
         self.np_x = np.random.random(size=[1, 16, 4096]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[1, 16, 4096]).astype("float32") + 0.5
+        self.np_y = np.random.random(size=[1, 16, 4096]).astype("float32") - 0.5
         self.np_dout = np.random.random(size=[1, 16, 4096]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
