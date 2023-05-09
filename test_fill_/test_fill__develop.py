@@ -109,7 +109,7 @@ class TestFill_DevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="paddle.square",
+            api="paddle.fill_",
         )
 
     def test_eager_stability(self):
@@ -130,7 +130,7 @@ class TestFill_DevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.square",
+                api="paddle.fill_",
             )
 
 
