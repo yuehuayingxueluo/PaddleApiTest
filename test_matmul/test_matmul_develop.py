@@ -89,7 +89,7 @@ def generate_np_inputs_and_dout():
     np.savez("./inputs_case3.npz", x=x_case3, y=y_case3, dout=dout_case3)
     np.savez("./inputs_case4.npz", x=x_case4, y=y_case4, dout=dout_case4)
     np.savez("./inputs_case5.npz", x=x_case5, y=y_case5, dout=dout_case5)
-    np.savez("./inputs_case6.npz", x=x_case6, y=y_case6 dout=dout_case6)
+    np.savez("./inputs_case6.npz", x=x_case6, y=y_case6, dout=dout_case6)
     np.savez("./inputs_case7.npz", x=x_case7, y=y_case7, dout=dout_case7)
     np.savez("./inputs_case8.npz", x=x_case8, y=y_case8, dout=dout_case8)
     np.savez("./inputs_case9.npz", x=x_case9, y=y_case9, dout=dout_case9)
