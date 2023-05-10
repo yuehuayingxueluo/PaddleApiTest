@@ -367,17 +367,6 @@ class TestMultiplyDevelopCase1_FP32(unittest.TestCase):
                     )
 
 
-class TestMultiplyDevelopCase1_FP16(TestMultiplyDevelopCase1_FP32):
-    def init_np_inputs_and_dout(self):
-        # init np array
-        self.np_x = np.random.random(size=[1, 16, 4096, 128]).astype("float16") - 0.5
-        self.np_y = np.random.random(size=[1, 16, 4096, 128]).astype("float16") - 0.5
-        self.np_dout = np.random.random(size=[1, 16, 4096, 128]).astype("float16") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
 
 
 class TestMultiplyDevelopCase1_FP32(TestMultiplyDevelopCase1_FP32):
@@ -392,57 +381,33 @@ class TestMultiplyDevelopCase1_FP32(TestMultiplyDevelopCase1_FP32):
             self.np_y = self.np_y.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
+class TestMultiplyDevelopCase1_FP16(TestMultiplyDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
 class TestMultiplyDevelopCase1_BFP16(TestMultiplyDevelopCase1_FP32):
-    def init_np_inputs_and_dout(self):
-        # init np array
-        self.np_x = np.random.random(size=[1, 16, 4096, 128]).astype("bfloat16") - 0.5
-        self.np_y = np.random.random(size=[1, 16, 4096, 128]).astype("bfloat16") - 0.5
-        self.np_dout = np.random.random(size=[1, 16, 4096, 128]).astype("bfloat16") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
-
-
-
-class TestMultiplyDevelopCase2_FP16(TestMultiplyDevelopCase1_FP32):
-    def init_np_inputs_and_dout(self):
-        # init np array
-        self.np_x = np.random.random(size=[4096, 1 , 5472]).astype("float16") - 0.5
-        self.np_y = np.random.random(size=[4096, 1 , 5472]).astype("float16") - 0.5
-        self.np_dout = np.random.random(size=[4096, 1 , 5472]).astype("float16") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
-
+    def init_params(self):
+        self.dtype = "bfloat16"
 
 class TestMultiplyDevelopCase2_FP32(TestMultiplyDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.random(size=[4096, 1 , 5472]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[4096, 1 , 5472]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[4096, 1 , 5472]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[4096 , 1 ,5472]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[4096 , 1 ,5472]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[4096 , 1 ,5472]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_y = self.np_y.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
+
+class TestMultiplyDevelopCase2_FP16(TestMultiplyDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
 
 class TestMultiplyDevelopCase2_BFP16(TestMultiplyDevelopCase1_FP32):
-    def init_np_inputs_and_dout(self):
-        # init np array
-        self.np_x = np.random.random(size=[4096, 1 , 5472]).astype("bfloat16") - 0.5
-        self.np_y = np.random.random(size=[4096, 1 , 5472]).astype("bfloat16") - 0.5
-        self.np_dout = np.random.random(size=[4096, 1 , 5472]).astype("bfloat16") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
-
+    def init_params(self):
+        self.dtype = "bfloat16"
 
 if __name__ == '__main__':
     np.random.seed(2023)
