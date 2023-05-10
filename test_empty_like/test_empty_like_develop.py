@@ -29,7 +29,7 @@ from utils import (
     np_assert_staility,
 )
 
-class TestEmptyDevelopCase1_FP32(unittest.TestCase):
+class TestEmptyLikeDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
@@ -133,17 +133,17 @@ class TestEmptyDevelopCase1_FP32(unittest.TestCase):
             )
 
 
-class TestEmptyDevelopCase1_FP16(TestEmptyDevelopCase1_FP32):
+class TestEmptyLikeDevelopCase1_FP16(TestEmptyLikeDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
 
 
-class TestEmptyDevelopCase1_BFP16(TestEmptyDevelopCase1_FP32):
+class TestEmptyLikeDevelopCase1_BFP16(TestEmptyLikeDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
 
-class TestEmptyDevelopCase2_FP32(TestEmptyDevelopCase1_FP32):
+class TestEmptyLikeDevelopCase2_FP32(TestEmptyLikeDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float32"
 
@@ -155,12 +155,12 @@ class TestEmptyDevelopCase2_FP32(TestEmptyDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
 
 
-class TestEmptyDevelopCase2_FP16(TestEmptyDevelopCase2_FP32):
+class TestEmptyLikeDevelopCase2_FP16(TestEmptyLikeDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "float16"
 
 
-class TestEmptyDevelopCase2_BFP16(TestEmptyDevelopCase2_FP32):
+class TestEmptyLikeDevelopCase2_BFP16(TestEmptyLikeDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
