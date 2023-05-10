@@ -401,11 +401,11 @@ class TestMultiplyDevelopCase2_FP32(TestMultiplyDevelopCase1_FP32):
             self.np_y = self.np_y.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
-class TestMultiplyDevelopCase2_FP16(TestMultiplyDevelopCase1_FP32):
+class TestMultiplyDevelopCase2_FP16(TestMultiplyDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "float16"
 
-class TestMultiplyDevelopCase2_BFP16(TestMultiplyDevelopCase1_FP32):
+class TestMultiplyDevelopCase2_BFP16(TestMultiplyDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
@@ -421,11 +421,11 @@ class TestMultiplyDevelopCase3_FP32(TestMultiplyDevelopCase1_FP32):
             self.np_y = self.np_y.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
-class TestMultiplyDevelopCase3_FP16(TestMultiplyDevelopCase1_FP32):
+class TestMultiplyDevelopCase3_FP16(TestMultiplyDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "float16"
 
-class TestMultiplyDevelopCase3_BFP16(TestMultiplyDevelopCase1_FP32):
+class TestMultiplyDevelopCase3_BFP16(TestMultiplyDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
