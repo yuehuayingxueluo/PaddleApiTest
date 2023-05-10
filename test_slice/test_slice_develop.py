@@ -41,10 +41,7 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         )
         del x_torch
         del dout_torch
-        self.out_torch = map_structure(
-            lambda x: x.cpu().detach().numpy(),
-            out_torch,
-        )
+        self.out_torch = out_torch.cpu().detach().numpy()
         self.out_grads_torch = map_structure(
             lambda x: x.cpu().numpy(),
             out_grads_torch,
@@ -52,12 +49,10 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         del out_torch, out_grads_torch
         torch.cuda.empty_cache()
 
-    def tearDown(self):
-        paddle.device.cuda.empty_cache()
-
     def init_params(self):
         self.dtype = "float32"
-        self.start_idx = 0
+        self.start = 0
+        self.end = 1
 
     def init_threshold(self):
         self.atol = TOLERANCE[self.dtype]["atol"]
@@ -125,60 +120,36 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
             dout = dout.to(dtype=torch.bfloat16)
-        out_vec = []
-        out_grads_vec = []
-        for i in range(10):
-            if hasattr(self,"is_last_slice") and self.is_last_slice:
-                out = x[i+self.start_idx:]
-            else:
-                out = x[i+self.start_idx:i+self.start_idx+1]
-            out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
-            out_vec.append(out)
-            out_grads_vec = out_grads_vec + list(out_grads)
+        out = x[self.start : self.end]
+        out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
-            out_vec = map_structure(lambda x: x.to(dtype=torch.float32), out_vec)
-            out_grads_vec = map_structure(lambda x: x.to(dtype=torch.float32), out_grads_vec)
-        return out_vec, out_grads_vec
+            out = out.to(dtype=torch.float32)
+            out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
+        return out, out_grads
 
     def cal_eager_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out_vec = []
-        out_grads_vec = []
-        for i in range(10):
-            if hasattr(self,"is_last_slice") and self.is_last_slice:
-                out = x[i+self.start_idx:]
-            else:
-                out = x[i+self.start_idx:i+self.start_idx+1]
-            out_grads = paddle.grad([out], [x], grad_outputs=[dout])
-            out_vec.append(out)
-            out_grads_vec = out_grads_vec + out_grads
+        out = x[self.start : self.end]
+        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
-            out_vec = map_structure(lambda x: paddle.cast(x,dtype="float32"), out_vec)
-            out_grads_vec = map_structure(lambda x: paddle.cast(x,dtype="float32"), out_grads_vec)
-        return out_vec, out_grads_vec
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
 
     def cal_static_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out_vec = []
-        out_grads_vec = []
-        for i in range(10):
-            if hasattr(self,"is_last_slice") and self.is_last_slice:
-                out = x[i+self.start_idx:]
-            else:
-                out = x[i+self.start_idx:i+self.start_idx+1]
-            out_grads = paddle.static.gradients(
-                [out], [x], target_gradients=[dout]
-            )
-            out_vec.append(out)
-            out_grads_vec = out_grads_vec + out_grads
+        out = x[self.start : self.end]
+        out_grads = paddle.static.gradients(
+            [out], [x], target_gradients=[dout]
+        )
         if self.dtype == "bfloat16":
-            out_vec = map_structure(lambda x: paddle.cast(x,dtype="float32"), out_vec)
-            out_grads_vec = map_structure(lambda x: paddle.cast(x,dtype="float32"), out_grads_vec)
-        return out_vec, out_grads_vec
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
 
     def test_eager_accuracy(self):
         x_eager, dout_eager = self.gen_eager_inputs_and_dout()
@@ -187,30 +158,28 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         )
         del x_eager
         del dout_eager
-        out_eager_np = map_structure(
-            lambda x: x.numpy(),
-            out_eager,
-        )
+        paddle.device.cuda.empty_cache()
+        out_eager_np = out_eager.numpy()
         out_grads_eager_np = map_structure(
             lambda x: x.numpy(),
             out_grads_eager,
         )
         del out_eager
         del out_grads_eager
+        paddle.device.cuda.empty_cache()
         # compare develop eager forward res with torch
-        for idx in range(len(out_eager_np)):
-            np_assert_accuracy(
-                out_eager_np[idx],
-                self.out_torch[idx],
-                self.atol,
-                self.rtol,
-                self.dtype,
-                version_a="paddle_develop",
-                version_b="torch",
-                eager_or_static_mode="eager",
-                fwd_or_bkd="forward",
-                api="paddle.slice",
-            )
+        np_assert_accuracy(
+            out_eager_np,
+            self.out_torch,
+            self.atol,
+            self.rtol,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="forward",
+            api="paddle.slice",
+        )
         # compare develop eager backward res with torch
         for idx in range(len(out_grads_eager_np)):
             np_assert_accuracy(
@@ -243,24 +212,23 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
             out = exe.run(
                 mp,
                 feed={"x": self.np_x, "dout": self.np_dout},
-                fetch_list= out_static + out_grads_static,
+                fetch_list=[out_static] + out_grads_static,
             )
-            out_static, out_grads_static = out[:len(out_static)], out[len(out_static):]
+            out_static, out_grads_static = out[0], out[1:]
 
         # compare develop static forward res with torch
-        for idx in range(len(out_static)):
-            np_assert_accuracy(
-                out_static[idx],
-                self.out_torch[idx],
-                self.atol,
-                self.rtol,
-                self.dtype,
-                version_a="paddle_develop",
-                version_b="torch",
-                eager_or_static_mode="static",
-                fwd_or_bkd="forward",
-                api="paddle.slice",
-            )
+        np_assert_accuracy(
+            out_static,
+            self.out_torch,
+            self.atol,
+            self.rtol,
+            self.dtype,
+            version_a="paddle_develop",
+            version_b="torch",
+            eager_or_static_mode="static",
+            fwd_or_bkd="forward",
+            api="paddle.slice",
+        )
         # compare develop static backward res with torch
         for idx in range(len(out_grads_static)):
             np_assert_accuracy(
@@ -281,40 +249,33 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(
             x_eager, dout_eager
         )
-        out_eager_baseline_np = map_structure(
-            lambda x: x.numpy(),
-            out_eager_baseline,
-        )
+        out_eager_baseline_np = out_eager_baseline.numpy()
         out_grads_eager_baseline_np = map_structure(
             lambda x: x.numpy(),
             out_grads_eager_baseline,
         )
         del out_eager_baseline
         del out_grads_eager_baseline
-
+        paddle.device.cuda.empty_cache()
         for i in range(50):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dout_eager
             )
-            out_eager = map_structure(
-                lambda x: x.numpy(),
-                out_eager,
-            )
+            out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
                 lambda x: x.numpy(),
                 out_grads_eager,
             )
             # test develop eager forward stability
-            for idx in range(len(out_eager)):
-                np_assert_staility(
-                    out_eager[idx],
-                    out_eager_baseline_np[idx],
-                    self.dtype,
-                    version="paddle_develop",
-                    eager_or_static_mode="eager",
-                    fwd_or_bkd="forward",
-                    api="paddle.slice",
-                )
+            np_assert_staility(
+                out_eager,
+                out_eager_baseline_np,
+                self.dtype,
+                version="paddle_develop",
+                eager_or_static_mode="eager",
+                fwd_or_bkd="forward",
+                api="paddle.slice",
+            )
             # test develop eager backward stability
             for idx in range(len(out_grads_eager)):
                 np_assert_staility(
@@ -344,27 +305,26 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
             out = exe.run(
                 mp,
                 feed={"x": self.np_x, "dout": self.np_dout},
-                fetch_list= out_static_pg + out_grads_static_pg,
+                fetch_list=[out_static_pg] + out_grads_static_pg,
             )
-            out_static_baseline, out_grads_static_baseline = out[0:len(out_static_pg)], out[len(out_static_pg):]
+            out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             for i in range(50):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
-                    fetch_list= out_static_pg + out_grads_static_pg,
+                    fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
-                out_static, out_grads_static = out[0:len(out_static_pg)], out[len(out_static_pg):]
+                out_static, out_grads_static = out[0], out[1:]
                 # test develop static forward stability
-                for idx in range(len(out_static)):
-                    np_assert_staility(
-                        out_static[idx],
-                        out_static_baseline[idx],
-                        self.dtype,
-                        version="paddle_develop",
-                        eager_or_static_mode="static",
-                        fwd_or_bkd="forward",
-                        api="paddle.slice",
-                    )
+                np_assert_staility(
+                    out_static,
+                    out_static_baseline,
+                    self.dtype,
+                    version="paddle_develop",
+                    eager_or_static_mode="static",
+                    fwd_or_bkd="forward",
+                    api="paddle.slice",
+                )
                 # test develop static backward stability
                 for idx in range(len(out_grads_static)):
                     np_assert_staility(
@@ -377,111 +337,55 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
                         api="paddle.slice",
                     )
 
-
 class TestSliceDevelopCase1_FP16(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start_idx = 0
+        self.start = 0
+        self.end = 1
 
 class TestSliceDevelopCase1_BFP16(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start_idx = 0
+        self.start = 0
+        self.end = 1
 
 class TestSliceDevelopCase2_FP32(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float32"
-        self.start_idx = 10
+        self.start = 63
+        self.end = 64
 
-class TestSliceDevelopCase2_FP16(TestSliceDevelopCase2_FP32):
+class TestSliceDevelopCase2_FP16(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start_idx = 10
+        self.start = 63
+        self.end = 64
 
-class TestSliceDevelopCase2_BFP16(TestSliceDevelopCase2_FP32):
+class TestSliceDevelopCase2_BFP16(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start_idx = 10
+        self.start = 63
+        self.end = 64
 
 class TestSliceDevelopCase3_FP32(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float32"
-        self.start_idx = 20
+        self.start = 25
+        self.end = 26
 
-class TestSliceDevelopCase3_FP16(TestSliceDevelopCase3_FP32):
+class TestSliceDevelopCase3_FP16(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start_idx = 20
+        self.start = 25
+        self.end = 26
 
-class TestSliceDevelopCase3_BFP16(TestSliceDevelopCase3_FP32):
+class TestSliceDevelopCase3_BFP16(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start_idx = 20
+        self.start = 25
+        self.end = 26
 
 class TestSliceDevelopCase4_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 30
-
-class TestSliceDevelopCase4_FP16(TestSliceDevelopCase4_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 30
-
-class TestSliceDevelopCase4_BFP16(TestSliceDevelopCase4_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 30
-
-class TestSliceDevelopCase5_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 40
-
-class TestSliceDevelopCase5_FP16(TestSliceDevelopCase5_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 40
-
-class TestSliceDevelopCase5_BFP16(TestSliceDevelopCase5_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 40
-
-class TestSliceDevelopCase6_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 50
-
-class TestSliceDevelopCase6_FP16(TestSliceDevelopCase6_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 50
-
-class TestSliceDevelopCase6_BFP16(TestSliceDevelopCase6_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 50
-
-class TestSliceDevelopCase7_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 60
-        self.is_last_slice = True
-
-class TestSliceDevelopCase7_FP16(TestSliceDevelopCase7_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 60
-        self.is_last_slice = True
-
-class TestSliceDevelopCase7_BFP16(TestSliceDevelopCase7_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 60
-        self.is_last_slice = True
-
-class TestSliceDevelopCase8_FP32(TestSliceDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array 
         self.np_x = np.random.random(size=[64, 4096, 4096]).astype("float32") - 0.5
@@ -490,115 +394,61 @@ class TestSliceDevelopCase8_FP32(TestSliceDevelopCase1_FP32):
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
-
+            
     def init_params(self):
         self.dtype = "float32"
-        self.start_idx = 0
+        self.start = 0
+        self.end = 1
 
-class TestSliceDevelopCase8_FP16(TestSliceDevelopCase8_FP32):
+class TestSliceDevelopCase4_FP16(TestSliceDevelopCase4_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start_idx = 0
+        self.start = 0
+        self.end = 1
 
-class TestSliceDevelopCase8_BFP16(TestSliceDevelopCase8_FP32):
+class TestSliceDevelopCase4_BFP16(TestSliceDevelopCase4_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start_idx = 0
+        self.start = 0
+        self.end = 1
 
-class TestSliceDevelopCase9_FP32(TestSliceDevelopCase1_FP32):
+class TestSliceDevelopCase5_FP32(TestSliceDevelopCase4_FP32):
     def init_params(self):
         self.dtype = "float32"
-        self.start_idx = 10
+        self.start = 25
+        self.end = 26
 
-class TestSliceDevelopCase9_FP16(TestSliceDevelopCase9_FP32):
+class TestSliceDevelopCase5_FP16(TestSliceDevelopCase5_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start_idx = 10
+        self.start = 25
+        self.end = 26
 
-class TestSliceDevelopCase9_BFP16(TestSliceDevelopCase9_FP32):
+class TestSliceDevelopCase5_BFP16(TestSliceDevelopCase5_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start_idx = 10
+        self.start = 25
+        self.end = 26
 
-class TestSliceDevelopCase10_FP32(TestSliceDevelopCase1_FP32):
+class TestSliceDevelopCase6_FP32(TestSliceDevelopCase4_FP32):
     def init_params(self):
         self.dtype = "float32"
-        self.start_idx = 20
+        self.start = 63
+        self.end = 64
 
-class TestSliceDevelopCase10_FP16(TestSliceDevelopCase10_FP32):
+class TestSliceDevelopCase6_FP16(TestSliceDevelopCase6_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start_idx = 20
+        self.start = 63
+        self.end = 64
 
-class TestSliceDevelopCase10_BFP16(TestSliceDevelopCase10_FP32):
+class TestSliceDevelopCase6_BFP16(TestSliceDevelopCase6_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start_idx = 20
+        self.start = 63
+        self.end = 64
 
-class TestSliceDevelopCase11_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 30
-
-class TestSliceDevelopCase11_FP16(TestSliceDevelopCase11_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 30
-
-class TestSliceDevelopCase11_BFP16(TestSliceDevelopCase11_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 30
-
-class TestSliceDevelopCase12_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 40
-
-class TestSliceDevelopCase12_FP16(TestSliceDevelopCase12_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 40
-
-class TestSliceDevelopCase12_BFP16(TestSliceDevelopCase12_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 40
-
-class TestSliceDevelopCase13_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 50
-
-class TestSliceDevelopCase13_FP16(TestSliceDevelopCase13_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 50
-
-class TestSliceDevelopCase13_BFP16(TestSliceDevelopCase13_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 50
-
-class TestSliceDevelopCase14_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start_idx = 60
-        self.is_last_slice = True
-
-class TestSliceDevelopCase14_FP16(TestSliceDevelopCase14_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start_idx = 60
-        self.is_last_slice = True
-
-class TestSliceDevelopCase14_BFP16(TestSliceDevelopCase14_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start_idx = 60
-        self.is_last_slice = True
-
-class TestSliceDevelopCase15_FP32(TestSliceDevelopCase10_FP32):
+class TestSliceDevelopCase7_FP32(TestSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float32"
         self.axes = [0]
@@ -842,7 +692,7 @@ class TestSliceDevelopCase15_FP32(TestSliceDevelopCase10_FP32):
                     )
 
 
-class TestSliceDevelopCase15_FP16(TestSliceDevelopCase15_FP32):
+class TestSliceDevelopCase7_FP16(TestSliceDevelopCase7_FP32):
     def init_params(self):
         self.dtype = "float16"
         self.axes = [0]
@@ -850,7 +700,7 @@ class TestSliceDevelopCase15_FP16(TestSliceDevelopCase15_FP32):
         self.ends = [2048]
 
 
-class TestSliceDevelopCase15_BFP16(TestSliceDevelopCase15_FP32):
+class TestSliceDevelopCase7_BFP16(TestSliceDevelopCase7_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
         self.axes = [0]
