@@ -43,9 +43,56 @@ def generate_np_inputs_and_dout():
         np.random.random(size=[1, 32, 4096, 192]).astype("float32") - 0.5
     )
 
+    x_case3 = np.random.random(size=[4096, 1, 10944]).astype("float32") - 0.5
+    y_case3 = np.random.random(size=[4096, 10944]).astype("float32") - 0.5
+    dout_case3 = (
+        np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
+    )
+
+    x_case4 = np.random.random(size=[4096, 1, 2048]).astype("float32") - 0.5
+    y_case4 = np.random.random(size=[2048, 4096]).astype("float32") - 0.5
+    dout_case4 = (
+        np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
+    )
+
+    x_case5 = np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
+    y_case5 = np.random.random(size=[2048, 4096]).astype("float32") - 0.5
+    dout_case5 = (
+        np.random.random(size=[4096, 1, 2048]).astype("float32") - 0.5
+    )
+
+    x_case6 = np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
+    y_case6 = np.random.random(size=[5472, 4096]).astype("float32") - 0.5
+    dout_case6 = (
+        np.random.random(size=[4096, 1, 5472]).astype("float32") - 0.5
+    )
+
+    x_case7 = np.random.random(size=[4096, 1, 5472]).astype("float32") - 0.5
+    y_case7 = np.random.random(size=[5472, 4096]).astype("float32") - 0.5
+    dout_case7 = (
+        np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
+    )
+
+    x_case8 = np.random.random(size=[4096, 1, 6144]).astype("float32") - 0.5
+    y_case8 = np.random.random(size=[4096, 6144]).astype("float32") - 0.5
+    dout_case8 = (
+        np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
+    )
+
+    x_case9 = np.random.random(size=[4096, 1]).astype("float32") - 0.5
+    y_case9 = np.random.random(size=[1, 64]).astype("float32") - 0.5
+    dout_case9 = (
+        np.random.random(size=[4096, 64]).astype("float32") - 0.5
+    )
     np.savez("./inputs_case1.npz", x=x_case1, y=y_case1, dout=dout_case1)
     np.savez("./inputs_case2.npz", x=x_case2, y=y_case2, dout=dout_case2)
-
+    np.savez("./inputs_case3.npz", x=x_case3, y=y_case3, dout=dout_case3)
+    np.savez("./inputs_case4.npz", x=x_case4, y=y_case4, dout=dout_case4)
+    np.savez("./inputs_case5.npz", x=x_case5, y=y_case5, dout=dout_case5)
+    np.savez("./inputs_case6.npz", x=x_case6, y=y_case6 dout=dout_case6)
+    np.savez("./inputs_case7.npz", x=x_case7, y=y_case7, dout=dout_case7)
+    np.savez("./inputs_case8.npz", x=x_case8, y=y_case8, dout=dout_case8)
+    np.savez("./inputs_case9.npz", x=x_case9, y=y_case9, dout=dout_case9)
 
 class TestMatmulDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
@@ -468,6 +515,208 @@ class TestMatmulDevelopCase2_BFP16(TestMatmulDevelopCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
 
+class TestMatmulDevelopCase3_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_fp32.npz"
+
+
+class TestMatmulDevelopCase3_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case3_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_fp16.npz"
+
+
+class TestMatmulDevelopCase3_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
+
+class TestMatmulDevelopCase4_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case4_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp32.npz"
+
+
+class TestMatmulDevelopCase4_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case4_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp16.npz"
+
+
+class TestMatmulDevelopCase4_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case4_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_bfp16.npz"
+
+class TestMatmulDevelopCase5_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case5_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_fp32.npz"
+
+
+class TestMatmulDevelopCase5_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case5_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_fp16.npz"
+
+
+class TestMatmulDevelopCase5_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case5_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_bfp16.npz"
+
+class TestMatmulDevelopCase6_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case6_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_fp32.npz"
+
+
+class TestMatmulDevelopCase6_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case6_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_fp16.npz"
+
+
+class TestMatmulDevelopCase6_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case6_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_bfp16.npz"
+
+class TestMatmulDevelopCase7_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case7_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_fp32.npz"
+
+
+class TestMatmulDevelopCase7_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case7_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_fp16.npz"
+
+
+class TestMatmulDevelopCase7_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case7_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_bfp16.npz"
+
+
+class TestMatmulDevelopCase8_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case8.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case8_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case8_fp32.npz"
+
+
+class TestMatmulDevelopCase8_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case8.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case8_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case8_fp16.npz"
+
+
+class TestMatmulDevelopCase8_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case8.npz"
+        self.transpose_x = False
+        self.transpose_y = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case8_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case8_bfp16.npz"
+
+class TestMatmulDevelopCase9_FP32(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case9.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case9_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case9_fp32.npz"
+
+
+class TestMatmulDevelopCase9_FP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case9.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case9_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case9_fp16.npz"
+
+class TestMatmulDevelopCase9_BFP16(TestMatmulDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case9.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case9_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case9_bfp16.npz"
 
 if __name__ == '__main__':
     generate_np_inputs_and_dout()
