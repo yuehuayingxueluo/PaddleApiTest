@@ -17,6 +17,7 @@ from symbol import parameters
 import sys
 from typing_extensions import Self
 import unittest
+import gc
 
 import numpy as np
 import torch
@@ -34,6 +35,7 @@ from utils import (
 class TestAdamWDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         print("17:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+        print("17:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
         self.init_params()
         self.init_threshold()
         self.index = 0
@@ -42,6 +44,8 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
 
     def tearDown(self):
         print("15:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+        print("15:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
+
 
         
     def gen_torch_data(self):
@@ -143,8 +147,13 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
         for _ in range(5):
             opt.step()
 
+        del opt
+        torch.cuda.empty_cache()
+
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.float32)
+
+        
         return x
 
     def cal_eager_res(self, x, grad):
@@ -169,9 +178,9 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
 
         for _ in range(5):
             opt.step()
-            print("3:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
 
-        del opt._accumulators
+        del opt
+        gc.collect()
         paddle.device.cuda.empty_cache()
         
         if self.dtype == "bfloat16":
@@ -200,7 +209,7 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
         for _ in range(5):
             opt._apply_optimize(loss=x, startup_program=paddle.fluid.default_main_program(), params_grads=[(x, x.grad)])
 
-        del opt._accumulators
+        del opt
         paddle.device.cuda.empty_cache()
 
         if self.dtype == "bfloat16":
@@ -213,17 +222,19 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
 
         x_eager, grad_eager = self.gen_eager_inputs_and_grad()
         print("1:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+        print("1:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
         out_eager = self.cal_eager_res(
             x_eager, grad_eager
         )
         del x_eager
         del grad_eager
-        paddle.device.cuda.empty_cache()
         out_eager_np = out_eager.numpy()
         del out_eager
+        gc.collect()
         paddle.device.cuda.empty_cache()
 
         print("2:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+        print("2:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
 
         # compare develop eager forward res with torch
         np_assert_accuracy(
@@ -242,6 +253,7 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
     def test_static_accuracy(self):
         print("strat test {dtype} shapes {shapes} static_accuracy".format(dtype=self.dtype, shapes=self.shapes))
         print("6:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+        print("6:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
         with paddle.fluid.framework._dygraph_guard(None):
             mp, sp = paddle.static.Program(), paddle.static.Program()
             with paddle.static.program_guard(mp, sp):
@@ -261,9 +273,12 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static],
             )
             out_static= out[0]
-
-        paddle.device.cuda.empty_cache()
-        print("7:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+        
+            del exe
+            gc.collect()
+            paddle.device.cuda.empty_cache()
+            print("7:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+            print("7:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
 
         # compare develop static forward res with torch
         np_assert_accuracy(
@@ -291,7 +306,7 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
         del grad_eager
         paddle.device.cuda.empty_cache()
 
-        for i in range(1):
+        for i in range(10):
             x_eager, grad_eager = self.gen_eager_inputs_and_grad()
             out_eager = self.cal_eager_res(
                 x_eager, grad_eager
@@ -311,6 +326,7 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
             del x_eager
             del grad_eager
             del out_eager
+            gc.collect()
             paddle.device.cuda.empty_cache()
 
     def test_static_stability(self):
@@ -336,7 +352,13 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg],
             )
             out_static_baseline = out[0]
-            for i in range(1):
+
+            del exe
+            gc.collect()
+
+            for i in range(10):
+                exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
+                exe.run(sp)
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "grad": self.np_grad},
@@ -353,8 +375,12 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
                     fwd_or_bkd="forward",
                     api="paddle.optimizer.adamw",
                 )
+
+                del exe
+                gc.collect()
                 paddle.device.cuda.empty_cache()
                 print("8:paddle.device.cuda.max_memory_allocated(): ", paddle.device.cuda.max_memory_allocated())
+                print("8:paddle.device.cuda.memory_allocated(): ", paddle.device.cuda.memory_allocated())
 
 test_shape = [[1], [4096], [50176, 8192], [2048, 4096], [4096, 10944],
                     [10944], [5472, 4096], [50176, 4096], [6144], 
