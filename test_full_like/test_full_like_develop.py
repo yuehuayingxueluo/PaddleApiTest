@@ -53,7 +53,7 @@ class TestFullLikeDevelopCase1_FP32(unittest.TestCase):
 
     def init_np_inputs(self):
         # init np array
-        self.np_x = np.random.random(size=[1, 16, 4096]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[1, 16, 4096, 128]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -235,7 +235,7 @@ class TestFullLikeDevelopCase1_BFP16(TestFullLikeDevelopCase1_FP32):
 class TestFullLikeDevelopCase2_FP32(TestFullLikeDevelopCase1_FP32):
     def init_np_inputs(self):
         # init np array 
-        self.np_x = np.random.random(size=[1, 16, 4096]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[1, 16, 4096, 128]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
