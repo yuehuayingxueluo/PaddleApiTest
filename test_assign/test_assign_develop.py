@@ -84,7 +84,6 @@ class TestAssignDevelopCase1_FP32(unittest.TestCase):
     def cal_torch_res(self, x):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
-        y = torch.empty(x.shape,  dtype=x.dtype , device = 'cuda')
         y = x
         if self.dtype == "bfloat16":
             y = y.to(dtype=torch.float32)
@@ -143,7 +142,7 @@ class TestAssignDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="paddle.empty",
+            api="paddle.assign",
         )    
 
     def test_eager_stability(self):
