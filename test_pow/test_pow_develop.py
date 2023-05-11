@@ -195,7 +195,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="paddle.square",
+            api="paddle.pow",
         )
         # compare develop eager backward res with torch
         for idx in range(len(out_grads_eager_np)):
@@ -209,7 +209,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="backward",
-                api="paddle.square",
+                api="paddle.pow",
             )
 
     def test_static_accuracy(self):
@@ -246,7 +246,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="static",
             fwd_or_bkd="forward",
-            api="paddle.square",
+            api="paddle.pow",
         )
         # compare develop static backward res with torch
         for idx in range(len(out_grads_static)):
@@ -260,7 +260,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="static",
                 fwd_or_bkd="backward",
-                api="paddle.square",
+                api="paddle.pow",
             )
 
     def test_eager_stability(self):
@@ -294,7 +294,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.square",
+                api="paddle.pow",
             )
             # test develop eager backward stability
             for idx in range(len(out_grads_eager)):
@@ -305,7 +305,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="eager",
                     fwd_or_bkd="backward",
-                    api="paddle.square",
+                    api="paddle.pow",
                 )
 
     def test_static_stability(self):
@@ -345,7 +345,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="static",
                     fwd_or_bkd="forward",
-                    api="paddle.square",
+                    api="paddle.pow",
                 )
                 # test develop static backward stability
                 for idx in range(len(out_grads_static)):
@@ -356,7 +356,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                         version="paddle_develop",
                         eager_or_static_mode="static",
                         fwd_or_bkd="backward",
-                        api="paddle.square",
+                        api="paddle.pow",
                     )
 
 
