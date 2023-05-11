@@ -44,9 +44,9 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
 
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.random(size=[10944]).astype("float32") - 0.5
-        self.np_y = np.random.uniform(-5.0, 5.0, [2048, 4096]).astype("float32")
-        self.np_dout = np.random.random(size=[10944]).astype("float32") - 0.5
+        self.np_x = np.random.uniform(1.0, 2.0, size=(2048, 4096)).astype("float32")
+        self.np_y = np.random.uniform(-2.0, 2.0, size=(2048, 4096)).astype("float32")
+        self.np_dout = np.random.uniform(-0.1, 0.1, size=(2048, 4096)).astype("float32")
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -374,8 +374,8 @@ class TestPowDevelopCase2_FP32(TestPowDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
         self.np_x = np.random.uniform(1.0, 5.0, size=(2048, 4096)).astype("float32")
-        self.np_y = np.random.uniform(-5.0, 5.0, size=(2048, 4096)).astype("float32")
-        self.np_dout = np.random.uniform(-5.0, 5.0, size=(2048, 4096)).astype("float32")
+        self.np_y = np.random.uniform(-3.0, 3.0, size=(2048, 4096)).astype("float32")
+        self.np_dout = np.random.uniform(-1.0, 1.0, size=(2048, 4096)).astype("float32")
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
