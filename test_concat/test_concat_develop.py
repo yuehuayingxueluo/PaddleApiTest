@@ -1,5 +1,6 @@
 import sys
 import unittest
+import gc
 
 import numpy as np
 import torch
@@ -34,6 +35,7 @@ class TestConcatDevelopCase1_FP32(unittest.TestCase):
             out_grads_torch,
         )
         del out_torch, out_grads_torch
+        gc.collect()
         torch.cuda.empty_cache()
 
     def init_params(self):
@@ -163,6 +165,7 @@ class TestConcatDevelopCase1_FP32(unittest.TestCase):
             del x_eager[0]
         del x_eager
         del dout_eager
+        gc.collect()
         paddle.device.cuda.empty_cache()
         out_eager_np = out_eager.numpy()
         out_grads_eager_np = map_structure(
@@ -171,6 +174,7 @@ class TestConcatDevelopCase1_FP32(unittest.TestCase):
         )
         del out_eager
         del out_grads_eager
+        gc.collect()
         paddle.device.cuda.empty_cache()
         # compare develop eager forward res with torch
         np_assert_accuracy(
@@ -265,6 +269,7 @@ class TestConcatDevelopCase1_FP32(unittest.TestCase):
         )
         del out_eager_baseline
         del out_grads_eager_baseline
+        gc.collect()
         paddle.device.cuda.empty_cache()
 
         for i in range(50):
