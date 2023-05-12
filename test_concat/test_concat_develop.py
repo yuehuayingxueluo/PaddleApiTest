@@ -401,9 +401,9 @@ class TestConcatDevelopCase3_FP32(TestConcatDevelopCase1_FP32):
         # init np array
         self.np_x = []
         for i in range(64):
-            x = np.random.random(size=[1, 4224, 4224]).astype("float32") - 0.5
+            x = np.random.random(size=[1]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[64, 4224, 4224]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[64]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             for i in range(64):
@@ -423,17 +423,17 @@ class TestConcatDevelopCase3_BFP16(TestConcatDevelopCase3_FP32):
 
 class TestConcatDevelopCase4_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 64
+        self.data_num = 7
         self.axis = 0
         # init np array
         self.np_x = []
-        for i in range(64):
+        for i in range(7):
             x = np.random.random(size=[1]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[64]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[7]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(64):
+            for i in range(7):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -450,17 +450,17 @@ class TestConcatDevelopCase4_BFP16(TestConcatDevelopCase4_FP32):
 
 class TestConcatDevelopCase5_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 7
+        self.data_num = 6
         self.axis = 0
         # init np array
         self.np_x = []
-        for i in range(7):
+        for i in range(6):
             x = np.random.random(size=[1]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[7]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[6]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(7):
+            for i in range(6):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -477,17 +477,17 @@ class TestConcatDevelopCase5_BFP16(TestConcatDevelopCase5_FP32):
 
 class TestConcatDevelopCase6_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 6
+        self.data_num = 64
         self.axis = 0
         # init np array
         self.np_x = []
-        for i in range(6):
-            x = np.random.random(size=[1]).astype("float32") - 0.5
+        for i in range(64):
+            x = np.random.random(size=[4096, 1]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[6]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[262144, 1]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(6):
+            for i in range(64):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -504,17 +504,17 @@ class TestConcatDevelopCase6_BFP16(TestConcatDevelopCase6_FP32):
 
 class TestConcatDevelopCase7_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 64
-        self.axis = 0
+        self.data_num = 2
+        self.axis = -1
         # init np array
         self.np_x = []
-        for i in range(64):
-            x = np.random.random(size=[4096, 1]).astype("float32") - 0.5
+        for i in range(2):
+            x = np.random.random(size=[4096, 64]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[262144, 1]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[4096, 128]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(64):
+            for i in range(2):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -531,17 +531,17 @@ class TestConcatDevelopCase7_BFP16(TestConcatDevelopCase7_FP32):
 
 class TestConcatDevelopCase8_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 2
-        self.axis = -1
+        self.data_num = 6
+        self.axis = 0
         # init np array
         self.np_x = []
-        for i in range(2):
-            x = np.random.random(size=[4096, 64]).astype("float32") - 0.5
+        for i in range(6):
+            x = np.random.random(size=[4096]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[4096, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[24576]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(2):
+            for i in range(6):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -558,17 +558,17 @@ class TestConcatDevelopCase8_BFP16(TestConcatDevelopCase8_FP32):
 
 class TestConcatDevelopCase9_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 6
+        self.data_num = 64
         self.axis = 0
         # init np array
         self.np_x = []
-        for i in range(6):
-            x = np.random.random(size=[4096]).astype("float32") - 0.5
+        for i in range(64):
+            x = np.random.random(size=[4224, 1]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[24576]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[270336, 1]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(6):
+            for i in range(64):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -585,17 +585,17 @@ class TestConcatDevelopCase9_BFP16(TestConcatDevelopCase9_FP32):
 
 class TestConcatDevelopCase10_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 64
+        self.data_num = 6
         self.axis = 0
         # init np array
         self.np_x = []
-        for i in range(64):
-            x = np.random.random(size=[4224, 1]).astype("float32") - 0.5
+        for i in range(6):
+            x = np.random.random(size=[8192]).astype("float32") - 0.5
             self.np_x.append(x)
-        self.np_dout = np.random.random(size=[270336, 1]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[49152]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
-            for i in range(64):
+            for i in range(6):
                 self.np_x[i] = self.np_x[i].astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
@@ -612,33 +612,6 @@ class TestConcatDevelopCase10_BFP16(TestConcatDevelopCase10_FP32):
 
 class TestConcatDevelopCase11_FP32(TestConcatDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
-        self.data_num = 6
-        self.axis = 0
-        # init np array
-        self.np_x = []
-        for i in range(6):
-            x = np.random.random(size=[8192]).astype("float32") - 0.5
-            self.np_x.append(x)
-        self.np_dout = np.random.random(size=[49152]).astype("float32") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            for i in range(6):
-                self.np_x[i] = self.np_x[i].astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
-
-
-class TestConcatDevelopCase11_FP16(TestConcatDevelopCase11_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-
-
-class TestConcatDevelopCase11_BFP16(TestConcatDevelopCase11_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-
-
-class TestConcatDevelopCase12_FP32(TestConcatDevelopCase1_FP32):
-    def init_np_inputs_and_dout(self):
         self.data_num = 64
         self.axis = 0
         # init np array
@@ -654,12 +627,12 @@ class TestConcatDevelopCase12_FP32(TestConcatDevelopCase1_FP32):
             self.np_dout = self.np_dout.astype("float16")
 
 
-class TestConcatDevelopCase12_FP16(TestConcatDevelopCase12_FP32):
+class TestConcatDevelopCase11_FP16(TestConcatDevelopCase11_FP32):
     def init_params(self):
         self.dtype = "float16"
 
 
-class TestConcatDevelopCase12_BFP16(TestConcatDevelopCase12_FP32):
+class TestConcatDevelopCase11_BFP16(TestConcatDevelopCase11_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
