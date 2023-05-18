@@ -77,29 +77,6 @@ def torch_fused_linear_param_grad_add(x, dy, dweight, dbias, multi_precision):
         res_dbias = dbias + dbias_tmp
     return promote_dtype(res_dweight), promote_dtype(res_dbias)
 
-def run_ground_truth(x, dy, dweight, dbias, multi_precision):
-    dweight_tmp = paddle.matmul(
-        x.reshape([-1, x.shape[-1]]),
-        dy.reshape([-1, dy.shape[-1]]),
-        transpose_x=True,
-    )
-    if dweight is None:
-        dweight = dweight_tmp
-    else:
-        assert dweight.shape == dweight_tmp.shape
-        assert dweight.dtype == dweight.dtype
-        res_dweight = dweight + dweight_tmp
-
-    dbias_tmp = dy.reshape([-1, dy.shape[-1]]).sum(axis=0)
-    if dbias is None:
-        dbias = dbias_tmp
-    else:
-        assert dbias.shape == dbias_tmp.shape
-        assert dbias.dtype == dbias_tmp.dtype
-        res_dbias = dbias + dbias_tmp
-    return res_dweight, res_dbias
-
-
 class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.shape = [3, 4, 32]
@@ -290,6 +267,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
         paddle.device.cuda.empty_cache()
 
         for i in range(50):
+            x_eager, dy_eager, dweight_eager, dbias_eager = self.gen_eager_inputs_and_dout()
             out_dweight_eager, out_dbias_eager = self.cal_eager_res(
                 x_eager, dy_eager, dweight_eager, dbias_eager
             )
