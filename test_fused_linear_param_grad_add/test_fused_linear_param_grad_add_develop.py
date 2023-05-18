@@ -33,10 +33,15 @@ from utils import (
 
 def promote_dtype(x):
     if x.dtype in [torch.float16, torch.bfloat16]:
-        return x.type_as(torch.float32)
+        return x.type(torch.float32)
     else:
         return x
 
+def promote_dtype_paddle(x):
+    if x.dtype in [paddle.float16, paddle.bfloat16]:
+        return x.astype(paddle.float32)
+    else:
+        return x
 
 def recreate(x, multi_precision):
     if isinstance(x, (list, tuple)):
@@ -49,8 +54,9 @@ def recreate(x, multi_precision):
         x = promote_dtype(x)
 
     return torch.tensor(x.cpu().detach().numpy()).cuda()
+
 def torch_fused_linear_param_grad_add(x, dy, dweight, dbias, multi_precision):
-    #x, dy, dweight, dbias = recreate([x, dy, dweight, dbias], multi_precision)
+    x, dy, dweight, dbias = recreate([x, dy, dweight, dbias], multi_precision)
     dweight_tmp = torch.matmul(
         x.reshape([-1, x.shape[-1]]).transpose_(0, 1),
         dy.reshape([-1, dy.shape[-1]]),
@@ -69,9 +75,30 @@ def torch_fused_linear_param_grad_add(x, dy, dweight, dbias, multi_precision):
         assert dbias.shape == dbias_tmp.shape
         assert dbias.dtype == dbias_tmp.dtype
         res_dbias = dbias + dbias_tmp
+    return promote_dtype(res_dweight), promote_dtype(res_dbias)
 
+def run_ground_truth(x, dy, dweight, dbias, multi_precision):
+    dweight_tmp = paddle.matmul(
+        x.reshape([-1, x.shape[-1]]),
+        dy.reshape([-1, dy.shape[-1]]),
+        transpose_x=True,
+    )
+    if dweight is None:
+        dweight = dweight_tmp
+    else:
+        assert dweight.shape == dweight_tmp.shape
+        assert dweight.dtype == dweight.dtype
+        res_dweight = dweight + dweight_tmp
+
+    dbias_tmp = dy.reshape([-1, dy.shape[-1]]).sum(axis=0)
+    if dbias is None:
+        dbias = dbias_tmp
+    else:
+        assert dbias.shape == dbias_tmp.shape
+        assert dbias.dtype == dbias_tmp.dtype
+        res_dbias = dbias + dbias_tmp
     return res_dweight, res_dbias
-    #return promote_dtype(res_dweight).numpy(), promote_dtype(res_dbias).numpy()
+
 
 class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
@@ -83,7 +110,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
         self.init_np_inputs_and_dout()
         self.has_dweight = None
         self.has_dbias = None
-        self.multi_precision = False
+        self.multi_precision = True
         x_torch, dy_torch, dweight_torch, dbias_torch = self.gen_torch_inputs_and_dout()
         out_dweight_torch, out_dbias_torch = self.cal_torch_res(
             x_torch, dy_torch, dweight_torch, dbias_torch
@@ -188,11 +215,9 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
             dbias = dbias.to(dtype=torch.bfloat16)
         out_dweight, out_dbias = torch_fused_linear_param_grad_add(x, dy, dweight, dbias, self.multi_precision)
 
-        #out_grads = torch.autograd.grad([out_dweight, out_dbias], [x, dy, dweight, dbias], grad_outputs=[dout_dweight, dout_dbias])
         if self.dtype == "bfloat16":
             out_dweight = out_dweight.to(dtype=torch.float32)
             out_dbias = out_dbias.to(dtype=torch.float32)
-            #out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
         return out_dweight, out_dbias
 
     def cal_eager_res(self, x, dy, dweight, dbias):
@@ -201,10 +226,12 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
             dy = paddle.cast(dy, dtype="uint16")
             dweight = paddle.cast(dweight, dtype="uint16")
             dbias = paddle.cast(dbias, dtype="uint16")
+        if self.multi_precision:
+            dweight = promote_dtype_paddle(dweight)
+            dbias = promote_dtype_paddle(dbias)
         out_dweight, out_dbias = _C_ops.fused_linear_param_grad_add(
             x, dy, dweight, dbias, self.multi_precision
             )
-        #out_grads = paddle.grad([out_dweight, out_dbias], [x, dy, dweight, dbias], grad_outputs=[dout_dweight, dout_dbias])
 
         return out_dweight, out_dbias
 
@@ -289,12 +316,9 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
                 api="paddle.add",
             )
 
-
-
 class TestFusedLinearParamGradAddDevelopCase1_FP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
-
 
 class TestFusedLinearParamGradAddDevelopCase1_BFP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
     def init_params(self):
@@ -314,7 +338,6 @@ class TestFusedLinearParamGradAddDevelopCase2_FP16(TestFusedLinearParamGradAddDe
 class TestFusedLinearParamGradAddDevelopCase2_BFP16(TestFusedLinearParamGradAddDevelopCase2):
     def init_params(self):
         self.dtype = "bfloat16"
-
 
 if __name__ == '__main__':
     np.random.seed(2023)
