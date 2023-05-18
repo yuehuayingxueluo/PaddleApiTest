@@ -239,7 +239,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="fused_linear_param_grad_add",
+            api="run_fused_linear_param_grad_add",
         )
         np_assert_accuracy(
             out_dbias_eager_np,
@@ -251,7 +251,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="fused_linear_param_grad_add",
+            api="run_fused_linear_param_grad_add",
         )
 
     def test_eager_stability(self):
@@ -282,7 +282,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.add",
+                api="run_fused_linear_param_grad_add",
             )
             np_assert_staility(
                 out_dbias_eager,
@@ -291,7 +291,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.add",
+                api="run_fused_linear_param_grad_add",
             )
 
 class TestFusedLinearParamGradAddDevelopCase1_FP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
