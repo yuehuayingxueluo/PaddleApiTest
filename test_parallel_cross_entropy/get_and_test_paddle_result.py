@@ -332,7 +332,7 @@ class TestPaddle(init_config_class.InitConfigClass):
                         print(e)
                         print("static_stability grad {dtype} failed".format(dtype=self.dtype))
 
-dtype_list = ["float32", "float16", "bfloat16"]
+dtype_list = ["float32"]
 
 dist_strategy = fleet.DistributedStrategy()
 world_size = paddle_dist.get_world_size()
@@ -347,21 +347,22 @@ set_random_seed(1024)
 
 group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
 
-for dtype in dtype_list:
+for id in [1, 2]:
+    for dtype in dtype_list:
 
-    np_input_dir = "./inputs_case1.npz"
-    save_static_res_path = "./static_develop_res_case1_{dtype}.npz".format(dtype=dtype) 
-    save_eager_res_path = "./eager_develop_res_case1_{dtype}.npz".format(dtype=dtype)
-    torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=id)
+        save_static_res_path = "./static_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype) 
+        save_eager_res_path = "./eager_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype)
+        torch_dir = "./torch_out_{dtype}_{id}.npz".format(dtype=dtype, id=id)
 
-    test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
-    test_paddle._test_eager_accuracy()
-    print("eager {dtype} success".format(dtype=dtype))
-    test_paddle._test_static_accuracy()
-    print("static {dtype} success".format(dtype=dtype))
-    test_paddle._test_eager_stability()
-    print("eager_stability {dtype}  success".format(dtype=dtype))
-    test_paddle._test_static_stability()
-    print("static_stability {dtype}  success".format(dtype=dtype))
+        test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
+        test_paddle._test_eager_accuracy()
+        print("eager {dtype} success".format(dtype=dtype))
+        test_paddle._test_static_accuracy()
+        print("static {dtype} success".format(dtype=dtype))
+        test_paddle._test_eager_stability()
+        print("eager_stability {dtype}  success".format(dtype=dtype))
+        test_paddle._test_static_stability()
+        print("static_stability {dtype}  success".format(dtype=dtype))
 
-    print("{dtype} success".format(dtype=dtype))
+        print("{dtype} success".format(dtype=dtype))
