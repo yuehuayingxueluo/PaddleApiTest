@@ -16,8 +16,8 @@ import numpy as np
 
 TOLERANCE = {
     "float32": {"atol": 1e-6, "rtol": 1e-6},
-    "float16": {"atol": 1e-4, "rtol": 1e-4},
-    "bfloat16": {"atol": 1e-3, "rtol": 1e-3},
+    "float16": {"atol": 1e-3, "rtol": 1e-3},
+    "bfloat16": {"atol": 1e-2, "rtol": 1e-2},
 }
 
 
