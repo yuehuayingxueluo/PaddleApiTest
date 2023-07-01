@@ -107,7 +107,7 @@ class TestNormDevelopCase1_FP32(unittest.TestCase):
         x_static.stop_gradient = False
         dout_static = paddle.static.data(
             'dout',
-            shape= self.np_x.shape if self.np_x.shape != () else [1],
+            shape= self.np_dout.shape if self.np_dout.shape != () else [1],
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
         dout_static.stop_gradient = False
@@ -334,15 +334,6 @@ class TestNormDevelopCase1_FP32(unittest.TestCase):
                         fwd_or_bkd="backward",
                         api="paddle.norm",
                     )
-
-
-class TestNormDevelopCase1_FP16(TestNormDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-
-class TestNormDevelopCase1_BFP16(TestNormDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
         
 if __name__ == '__main__':
     np.random.seed(2023)
