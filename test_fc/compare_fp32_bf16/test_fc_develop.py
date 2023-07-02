@@ -6,7 +6,6 @@ import unittest
 from paddle.utils import map_structure
 import sys
 sys.path.append("..")
-sys.path.append("..")
 from utils import (
     TOLERANCE,
     convert_dtype_to_torch_type,
@@ -29,11 +28,11 @@ class TestFCDevelop(unittest.TestCase):
         self.rtol = TOLERANCE[self.dtype]["rtol"]
 
     def init_np_inputs_and_dout(self):
-
-        self.np_x = np.random.random(size=self.shape["x"]).astype("float32")
-        self.np_w = np.random.random(size=self.shape["w"]).astype("float32")
-        self.np_b = np.random.random(size=self.shape["b"]).astype("float32")
-        self.np_dout = np.random.random(size=self.shape["dout"]).astype("float32")
+        np.random.seed(123)
+        self.np_x = np.random.random(size=self.shape["x"]).astype("float32") - 0.5
+        self.np_w = np.random.random(size=self.shape["w"]).astype("float32") - 0.5
+        self.np_b = np.random.random(size=self.shape["b"]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=self.shape["dout"]).astype("float32") - 0.5
 
         # convert np array dtype
         if self.dtype == "float16":
@@ -111,13 +110,13 @@ if __name__ == '__main__':
     w = [[14336, 5376], [14336, 9632], [1792, 14336], [4816, 14336]]
     b = [[5376], [9632], [14336], [14336]]
     dout = [[1, 8192, 5376], [1, 8192, 9632], [1, 8192, 14336], [1, 8192, 14336]]
-    shape = {}
     shape_list = []
     for i in range(len(x)):
-        shape["x"] = x[i - 1]
-        shape["w"] = w[i - 1]
-        shape["b"] = b[i - 1]
-        shape["dout"] = dout[i - 1]
+        shape = {}
+        shape["x"] = x[i]
+        shape["w"] = w[i]
+        shape["b"] = b[i]
+        shape["dout"] = dout[i]
         shape_list.append(shape)
     for shape in shape_list:
         global_out.clear()
