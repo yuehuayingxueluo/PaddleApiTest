@@ -89,13 +89,18 @@ class TestSiluDevelop():
 if __name__ == '__main__':
     shape_list = [[1, 8192, 4816]]
     for shape in shape_list:
+        global_out.clear()
+        global_dout.clear()
         test_case_fp32 = TestSiluDevelop(shape, dtype="float32")
         test_case_fp32.test_eager_accuracy()
         test_case_bf16 = TestSiluDevelop(shape, dtype="bfloat16")
         test_case_bf16.test_eager_accuracy()
         try:
             np.testing.assert_array_equal(global_out[0], global_out[1])
-            np.testing.assert_array_equal(global_dout[0], global_dout[1])
         except Exception as e:
             print(e)
 
+        try:
+            np.testing.assert_array_equal(global_dout[0], global_dout[1])
+        except Exception as e:
+            print(e)
