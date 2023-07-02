@@ -100,9 +100,8 @@ class TestFCDevelop(unittest.TestCase):
                                 lambda x: x.numpy(),
                                 out_grads_eager,
                             )
-        
         global_out.append(out_eager_np)
-        global_dout.append(out_grads_eager_np)
+        global_dout.append(out_grads_eager_np[0])
 
         del out_eager
         del out_grads_eager
