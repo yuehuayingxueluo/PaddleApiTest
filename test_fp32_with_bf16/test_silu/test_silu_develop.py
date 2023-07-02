@@ -7,7 +7,7 @@ import torch
 import paddle
 from paddle.utils import map_structure
 import sys
-sys.path.append("..")
+sys.path.append("../..")
 from utils import (
     TOLERANCE,
     np_assert_accuracy

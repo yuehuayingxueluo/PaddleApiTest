@@ -5,7 +5,7 @@ import paddle.distributed.fleet as fleet
 import init_config_class
 import random
 import sys
-sys.path.append("..")
+sys.path.append("../..")
 from utils import (
     np_assert_accuracy
 )
