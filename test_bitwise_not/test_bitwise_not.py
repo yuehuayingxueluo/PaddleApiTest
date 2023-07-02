@@ -29,7 +29,7 @@ from utils import (
     np_assert_staility,
 )
 
-class TestBitwiseNotDevelopCase1_FP32(unittest.TestCase):
+class TestBitwiseNotDevelopCase1_Bool(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
@@ -53,7 +53,7 @@ class TestBitwiseNotDevelopCase1_FP32(unittest.TestCase):
     def init_np_inputs(self):
         # init np array 
         sample_arr = [True, False]
-        self.np_x = np.random.choice(sample_arr, size=[10944])
+        self.np_x = np.random.choice(sample_arr, size=[1, 8192])
 
     def gen_torch_inputs(self):
         x_torch = torch.tensor(
