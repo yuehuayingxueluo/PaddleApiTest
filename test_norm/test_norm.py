@@ -1,3 +1,17 @@
+# Copyright (c) 2023 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import unittest
 
@@ -7,7 +21,7 @@ import torch
 import paddle
 from paddle.utils import map_structure
 
-sys.path.append("../")
+sys.path.append("..")
 from utils import (
     TOLERANCE,
     convert_dtype_to_torch_type,
@@ -15,17 +29,16 @@ from utils import (
     np_assert_staility,
 )
 
-class TestPowDevelopCase1_FP32(unittest.TestCase):
+class TestNormDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
         self.init_np_inputs_and_dout()
-        x_torch, y_torch, dout_torch = self.gen_torch_inputs_and_dout()
+        x_torch, dout_torch = self.gen_torch_inputs_and_dout()
         out_torch, out_grads_torch = self.cal_torch_res(
-            x_torch, y_torch, dout_torch
+            x_torch, dout_torch
         )
         del x_torch
-        del y_torch
         del dout_torch
         self.out_torch = out_torch.cpu().detach().numpy()
         self.out_grads_torch = map_structure(
@@ -43,14 +56,12 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
         self.rtol = TOLERANCE[self.dtype]["rtol"]
 
     def init_np_inputs_and_dout(self):
-        # init np array
-        self.np_x = np.random.uniform(1.0, 2.0, size=(2048, 4096)).astype("float32")
-        self.np_y = np.random.uniform(-2.0, 2.0, size=(2048, 4096)).astype("float32")
-        self.np_dout = np.random.uniform(-0.1, 0.1, size=(2048, 4096)).astype("float32")
+        # init np array 
+        self.np_x = np.random.random(size=[12528, 14336]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
     def gen_torch_inputs_and_dout(self):
@@ -62,15 +73,6 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             else torch.float32,
             requires_grad=True,
         )
-        y_torch = torch.tensor(
-            self.np_y,
-            device='cuda',
-            dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
-            requires_grad=True,
-        )
-
         dout_torch = torch.tensor(
             self.np_dout,
             device='cuda',
@@ -79,7 +81,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             else torch.float32,
             requires_grad=True,
         )
-        return (x_torch, y_torch, dout_torch)
+        return x_torch, dout_torch
 
     def gen_eager_inputs_and_dout(self):
         x_eager = paddle.to_tensor(
@@ -88,22 +90,13 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             place="gpu",
         )
         x_eager.stop_gradient = False
-
-        y_eager = paddle.to_tensor(
-            self.np_y,
-            dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
-            place="gpu",
-        )
-        y_eager.stop_gradient = False
-
-
         dout_eager = paddle.to_tensor(
             self.np_dout,
             dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
             place="gpu",
         )
         dout_eager.stop_gradient = False
-        return (x_eager, y_eager, dout_eager)
+        return x_eager, dout_eager
 
     def gen_static_inputs_and_dout(self):
         x_static = paddle.static.data(
@@ -112,55 +105,43 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
         x_static.stop_gradient = False
-
-        y_static = paddle.static.data(
-            'y',
-            shape=self.np_x.shape,
-            dtype=self.dtype if self.dtype != "bfloat16" else "float32",
-        )
-        y_static.stop_gradient = False
-
-
         dout_static = paddle.static.data(
             'dout',
-            shape=self.np_dout.shape,
+            shape= self.np_dout.shape if self.np_dout.shape != () else [1],
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
         dout_static.stop_gradient = False
-        return (x_static, y_static, dout_static)
+        return x_static, dout_static
 
-    def cal_torch_res(self, x, y, dout):
+    def cal_torch_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
-            y = y.to(dtype=torch.bfloat16)
             dout = dout.to(dtype=torch.bfloat16)
-        out = torch.pow(x, y)
-        out_grads = torch.autograd.grad([out], [x, y], grad_outputs=[dout])
+        out = torch.norm(x)
+        out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = out.to(dtype=torch.float32)
             out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
         return out, out_grads
 
-    def cal_eager_res(self, x, y, dout):
+    def cal_eager_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
-            y = paddle.cast(y, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.pow(x, y)
-        out_grads = paddle.grad([out], [x, y], grad_outputs=[dout])
+        out = paddle.norm(x)
+        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
             out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
         return out, out_grads
 
-    def cal_static_res(self, x, y, dout):
+    def cal_static_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
-            y = paddle.cast(y, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.pow(x, y)
+        out = paddle.norm(x)
         out_grads = paddle.static.gradients(
-            [out], [x, y], target_gradients=[dout]
+            [out], [x], target_gradients=[dout]
         )
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
@@ -168,12 +149,11 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
         return out, out_grads
 
     def test_eager_accuracy(self):
-        x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        x_eager, dout_eager = self.gen_eager_inputs_and_dout()
         out_eager, out_grads_eager = self.cal_eager_res(
-            x_eager, y_eager, dout_eager
+            x_eager, dout_eager
         )
         del x_eager
-        del y_eager
         del dout_eager
         paddle.device.cuda.empty_cache()
         out_eager_np = out_eager.numpy()
@@ -195,7 +175,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="eager",
             fwd_or_bkd="forward",
-            api="paddle.pow",
+            api="paddle.norm",
         )
         # compare develop eager backward res with torch
         for idx in range(len(out_grads_eager_np)):
@@ -209,7 +189,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="backward",
-                api="paddle.pow",
+                api="paddle.norm",
             )
 
     def test_static_accuracy(self):
@@ -218,19 +198,17 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             with paddle.static.program_guard(mp, sp):
                 (
                     x_static,
-                    y_static,
                     dout_static,
                 ) = self.gen_static_inputs_and_dout()
                 (out_static, out_grads_static) = self.cal_static_res(
                     x_static,
-                    y_static,
                     dout_static,
                 )
             exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x, "y":self.np_y, "dout": self.np_dout},
+                feed={"x": self.np_x, "dout": self.np_dout},
                 fetch_list=[out_static] + out_grads_static,
             )
             out_static, out_grads_static = out[0], out[1:]
@@ -246,7 +224,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             version_b="torch",
             eager_or_static_mode="static",
             fwd_or_bkd="forward",
-            api="paddle.pow",
+            api="paddle.norm",
         )
         # compare develop static backward res with torch
         for idx in range(len(out_grads_static)):
@@ -260,13 +238,13 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 version_b="torch",
                 eager_or_static_mode="static",
                 fwd_or_bkd="backward",
-                api="paddle.pow",
+                api="paddle.norm",
             )
 
     def test_eager_stability(self):
-        x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        x_eager, dout_eager = self.gen_eager_inputs_and_dout()
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(
-            x_eager, y_eager, dout_eager
+            x_eager, dout_eager
         )
         out_eager_baseline_np = out_eager_baseline.numpy()
         out_grads_eager_baseline_np = map_structure(
@@ -279,7 +257,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
 
         for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
-                x_eager, y_eager, dout_eager
+                x_eager, dout_eager
             )
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
@@ -294,7 +272,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 version="paddle_develop",
                 eager_or_static_mode="eager",
                 fwd_or_bkd="forward",
-                api="paddle.pow",
+                api="paddle.norm",
             )
             # test develop eager backward stability
             for idx in range(len(out_grads_eager)):
@@ -305,7 +283,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="eager",
                     fwd_or_bkd="backward",
-                    api="paddle.pow",
+                    api="paddle.norm",
                 )
 
     def test_static_stability(self):
@@ -314,26 +292,24 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
             with paddle.static.program_guard(mp, sp):
                 (
                     x_static,
-                    y_static,
                     dout_static,
                 ) = self.gen_static_inputs_and_dout()
                 (out_static_pg, out_grads_static_pg) = self.cal_static_res(
                     x_static,
-                    y_static,
                     dout_static,
                 )
             exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
+                feed={"x": self.np_x, "dout": self.np_dout},
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             for i in range(5):
                 out = exe.run(
                     mp,
-                    feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
+                    feed={"x": self.np_x, "dout": self.np_dout},
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
@@ -345,7 +321,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                     version="paddle_develop",
                     eager_or_static_mode="static",
                     fwd_or_bkd="forward",
-                    api="paddle.pow",
+                    api="paddle.norm",
                 )
                 # test develop static backward stability
                 for idx in range(len(out_grads_static)):
@@ -356,63 +332,33 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                         version="paddle_develop",
                         eager_or_static_mode="static",
                         fwd_or_bkd="backward",
-                        api="paddle.pow",
+                        api="paddle.norm",
                     )
 
-
-class TestPowDevelopCase1_FP16(TestPowDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-
-
-class TestPowDevelopCase1_BFP16(TestPowDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-
-
-class TestPowDevelopCase2_FP32(TestPowDevelopCase1_FP32):
+class TestNormDevelopCase2_FP32(TestNormDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.uniform(1.0, 5.0, size=(2048, 4096)).astype("float32")
-        self.np_y = np.random.uniform(-3.0, 3.0, size=(2048, 4096)).astype("float32")
-        self.np_dout = np.random.uniform(-1.0, 1.0, size=(2048, 4096)).astype("float32")
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
+        self.np_x = np.random.random(size=[14336, 5376]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[]).astype("float32") - 0.5
 
-class TestPowDevelopCase2_FP16(TestPowDevelopCase2_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-
-
-class TestPowDevelopCase2_BFP16(TestPowDevelopCase2_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-
-class TestPowDevelopCase2_FP32(TestPowDevelopCase1_FP32):
+class TestNormDevelopCase3_FP32(TestNormDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.uniform(1.0, 5.0, size=(64)).astype("float32")
-        self.np_y = np.random.uniform(-3.0, 3.0, size=(64)).astype("float32")
-        self.np_dout = np.random.uniform(-1.0, 1.0, size=(64)).astype("float32")
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
+        self.np_x = np.random.random(size=[14336, 9632]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[]).astype("float32") - 0.5
 
-class TestPowDevelopCase2_FP16(TestPowDevelopCase2_FP32):
-    def init_params(self):
-        self.dtype = "float16"
+class TestNormDevelopCase4_FP32(TestNormDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1792, 14336]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[]).astype("float32") - 0.5
 
-
-class TestPowDevelopCase2_BFP16(TestPowDevelopCase2_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-
-
+class TestNormDevelopCase5_FP32(TestNormDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[4816, 14336]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[]).astype("float32") - 0.5
+        
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
