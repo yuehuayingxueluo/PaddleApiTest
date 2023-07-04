@@ -95,6 +95,7 @@ class TestLayerNormFP32vsBFP16(unittest.TestCase):
         x_bfp16, w_bfp16, b_bfp16, dout_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="bfloat16"), self.gen_eager_inputs_and_dout())
         x_fp32, w_fp32, b_fp32, dout_fp32 = paddle.cast(x_bfp16,"float32"), paddle.cast(w_bfp16,"float32"), paddle.cast(b_bfp16,"float32"), paddle.cast(dout_bfp16,"float32")
         out_fp32, out_grads_fp32 = self.cal_res(x_fp32, w_fp32, b_fp32, dout_fp32)
+        out_fp32 = paddle.cast(paddle.cast(out_fp32, "bfloat16"), "float32")
         out_grads_fp32 =  map_structure(lambda x: paddle.cast(paddle.cast(x,"bfloat16"),"float32"), out_grads_fp32)
         out_bfp16, out_grads_bfp16 = self.cal_res(x_bfp16, w_bfp16, b_bfp16, dout_bfp16)
         pt_out_bfp16 = paddle.cast(out_bfp16, "float32")
