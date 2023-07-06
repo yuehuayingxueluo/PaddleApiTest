@@ -20,7 +20,7 @@ esac
 #please run "bash test_vocab_parallel_embedding.sh * develop" first
 
 if [ "$version" == 'develop' ]; then
-    rm -rf data/*.npz
+    # rm -rf data/*.npz
     # python prepare_data.py
     python -m paddle.distributed.launch --log_dir $log_dir get_and_test_paddle_result.py
 else
